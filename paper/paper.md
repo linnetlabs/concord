@@ -1,12 +1,13 @@
 ---
-title: 'Concord: Token-efficient documentation consistency checking via semantic retrieval'
+title: 'Concord: Cross-file contradiction detection and leak guarding for code and documentation'
 tags:
   - Python
   - documentation
+  - consistency
+  - contradiction detection
   - information retrieval
   - large language models
   - software maintenance
-  - technical writing
 authors:
   - name: Ben Wiseman
     orcid: 0009-0002-1023-9026
@@ -20,110 +21,87 @@ bibliography: paper.bib
 
 # Summary
 
-Large software and product repositories accumulate prose across many files —
-pricing pages, onboarding guides, security policies, API references, and
-marketing copy. As these documents evolve independently, hard facts drift apart:
-a price quoted one way in a pricing page and another in an FAQ, an anonymity
-threshold of `n >= 8` in a policy and `n >= 5` in a help article. Such
-contradictions are hard to find by hand and easy to ship.
+Large repositories mix prose and code: pricing pages, onboarding guides and
+security policies alongside the configuration files, string literals and constants
+that actually drive the product. As these evolve independently, hard facts drift
+apart — a price quoted one way on a pricing page and another in an FAQ; an anonymity
+floor set to `MIN_RESPONDENTS = 8` in a Python module but `"min_n": 5` in a config
+file. Such contradictions are easy to ship and hard to find by hand.
 
 `Concord` (installed as `concord-ai`) is an open-source Python tool that keeps a
-documentation corpus internally consistent. It provides three composable capabilities over a
-repository's text files: (1) a **deterministic leak guard** that fails
-continuous-integration if a banned term (an internal codename, a retired product
-name) reaches a file marked public; (2) **semantic retrieval** that answers
-plain-language questions with the exact passages that matter, each cited to
-`file:line`, so a language model reasons over the relevant lines rather than the
-whole repository; and (3) a **typed-value contradiction detector** that surfaces
-semantically similar passages carrying disjoint hard values of the same type
-(prices, thresholds, percentages, durations).
+repository telling one story. It offers three composable capabilities: (1) a
+**typed-value contradiction radar** that surfaces semantically similar passages
+carrying disjoint hard values of the same kind — prices, thresholds, durations, and
+named code/config constants — across both prose and source; (2) a **deterministic
+leak guard** that fails continuous integration if a banned term (an internal
+codename, a retired product name) reaches a file marked public; and (3) **semantic
+retrieval** that answers a plain-language question with the exact passages that
+matter, each cited to `file:line`.
 
-Concord runs fully on-device. Semantic features are powered by local sentence
-embeddings via `sentiment.ai` [@sentimentai], requiring no hosted endpoint or
-API key. An optional verification stage can route flagged candidates to a
-language model for adjudication, but the core pipeline is deterministic and free
-to run. The tool indexes incrementally on git-diff boundaries, exposes a 14-command
-command-line interface, an interactive local-server HTML explorer, and a GitHub
-Action.
+To work across file types, Concord extracts the meaningful units from each through a
+modular per-extension registry — visible text from HTML (skipping `<script>` and
+`<style>`), comments, string literals and named constants from code and
+configuration, paragraphs from documentation — so supporting a new language is a
+single function. The index is built incrementally: `concord update` re-embeds only
+the files a `git diff` reports as changed (with a content-hash fallback when there is
+no git), and `concord init` scaffolds the index and a private ruleset and adds both
+to `.gitignore`, so neither is ever committed. Everything runs on-device using local
+sentence embeddings via `sentiment.ai` [@sentimentai]; an optional language-model
+pass can adjudicate flagged contradictions, but the core pipeline is deterministic
+and free to run.
 
 # Statement of need
 
-Two workflows motivate Concord. First, **auditing a large corpus with a language
-model is token-expensive.** Feeding an entire repository into a model's context
-to ask a single question scales poorly: a corpus of tens of thousands of passages
-must be re-attended for every query. Concord instead retrieves a small, ranked,
-citable set of passages.
+**Contradictions hide across files, and across file types.** A `grep` for `$49`
+will not find a conflicting `$39` elsewhere, and no reviewer remembers every place a
+value is stated — still less that an anonymity floor in a Python module disagrees
+with a JSON config. Concord's radar addresses this directly: it extracts typed
+values (including code forms such as `MIN_N = 8` and `"min_n": 5`), pairs passages by
+embedding similarity and shared subject words, and flags those carrying same-type but
+disjoint values. On a synthetic five-document benchmark with twelve labelled conflict
+pairs it recovers all twelve (recall 1.0) among 69 candidates (precision 0.17); the
+low precision is deliberate for a high-recall pre-filter, and an optional
+language-model pass adjudicates the false candidates by reading full context. The
+asymmetry is intentional: a missed inconsistency is expensive, a false candidate
+costs one dismissal.
 
-We measure token efficiency across five repositories spanning two orders of
-magnitude in size — four public (`roperators`, `squawkbox`, `concord`, and
-`sentiment.ai`; 100 to 3,565 passages) and one large proprietary production
-repository (~24,400 passages, ~3.1M tokens) included as a scale anchor. Reading
-the top ten retrieved passages places a roughly constant 140–310 tokens in
-context for four of the five repositories regardless of corpus size, whereas the
-naive full-corpus baseline grows linearly (\autoref{fig:scaling}); `concord` is an
-outlier at ~4,600 tokens because its dense HTML files segment into oversized
-passages. Context reduction therefore rises with scale, from ~90% on the smallest
-repository to ~99.99% on the largest — an approximately 11,600-fold reduction at
-3.1M tokens. Reduction approaches the structural ceiling $1 - k/N$ (read depth $k$,
-passage count $N$) at scale, but deviates when passage sizes are heterogeneous, as
-in the `concord` outlier. Query embedding takes approximately 313 ms on a consumer
-laptop CPU; the exact nearest-neighbour scan stays under 3.3 ms across the full
-size range. A purely geometric stopping rule (elbow cutoff) degrades badly at
-scale — on the largest repository its median return is the entire ranked list
-(24,409 of 24,416 passages) — so a fixed read depth is the production default.
+**Auditing a repository with a language model is token-expensive.** Feeding a whole
+repository into context to answer one question scales poorly; Concord instead
+retrieves a small, ranked, citable set of passages. Neighbouring tools solve
+different problems: prose linters such as `Vale` [@vale] enforce per-sentence rules
+but do not reason across files about whether two passages agree; retrieval frameworks
+such as `LlamaIndex` [@llamaindex] provide general document search but are not
+oriented toward consistency auditing, `file:line` citation, or deterministic leak
+prevention in CI; and knowledge-graph tools such as Graphify [@graphify] map how
+concepts relate, returning concept nodes with file pointers — useful orientation, but
+not the conflicting text. Asked *"find contradictory pricing information"* over a
+production repository, Graphify returns 46 concept nodes (~1,565 tokens) of pointers,
+whereas Concord returns the verbatim passages cited to `file:line` and its radar
+names the values that disagree.
 
-![Token-efficiency scaling across five repositories. Per-query context cost stays
-nearly flat (left) while the naive full-corpus baseline grows linearly, so
-reduction approaches 100% with corpus size (right), tracking the $1 - k/N$ bound.
-\label{fig:scaling}](fig_scaling.png){ width=100% }
-
-Second, **keyword search and manual review miss paraphrased inconsistencies.**
-A `grep` for `$49` will not find a conflicting `$39` elsewhere, and no reviewer
-reliably remembers every place a value is stated. Concord's contradiction radar
-addresses this directly: it extracts typed values by regular expression, gates
-candidate pairs by embedding similarity (same topic) and shared subject words,
-and requires the values to be of the same type yet disjoint. On a synthetic
-five-document benchmark with twelve labelled conflict pairs, the radar recovers
-all twelve (recall 1.0) among 69 flagged candidates (precision 0.17). The low
-precision is by design for a high-recall pre-filter, and an optional language-model
-verification pass adjudicates the false candidates by examining full passage
-context. This asymmetric design is deliberate: a missed inconsistency is expensive,
-whereas a false candidate costs one dismissal in a review queue.
-
-Existing tools address neighbouring but distinct problems. Spell- and
-style-checkers such as `Vale` [@vale] enforce per-sentence rules but do not reason
-across files about whether two passages agree. Retrieval-augmented generation
-frameworks such as `LlamaIndex` [@llamaindex] provide general document retrieval
-but are not oriented toward consistency auditing, citation to `file:line`, or
-deterministic leak prevention in CI. Knowledge-graph tools such as Graphify
-[@graphify] return concept nodes with file pointers — useful orientation, but not
-the conflicting text. On a 24,400-passage repository, *"find contradictory pricing
-information"* yields 46 nodes (~1,565 tokens) of pointers from Graphify versus ~290
-tokens of verbatim, citable passages from Concord — and only Concord's radar reports
-the disagreeing values. Concord targets the specific maintenance task of keeping a
-sprawling corpus telling one story, with auditing as a first-class operation.
-
-Concord is aimed at technical writers and developers maintaining product and
-policy documentation, and at LLM-agent workflows that need grounded, citable
-context from a repository without ingesting it whole.
+Concord is aimed at technical writers and developers maintaining product, policy and
+configuration that must stay consistent, and at LLM-agent workflows that need
+grounded, citable context from a repository without ingesting it whole.
 
 # Functionality and design
 
-A repository's text files are segmented into paragraph-level passages with line
-spans, so every result is citable like a `grep` hit. Passages are embedded into a
-NumPy matrix under a gitignored `.concord/` directory; similarity search is exact
-cosine nearest-neighbour. Multiple query phrasings are max-merged to recover recall
-a single phrasing misses, and a maximal-marginal-relevance re-ranker [@carbonell1998]
-suppresses near-duplicates. The contradiction detector scopes its pairwise comparison
-to value-bearing passages, giving complexity quadratic in that subset, not the corpus.
+Files become citable, line-numbered passages in two ways. For the semantic index,
+structure-aware extraction keeps the contradiction-worthy content and discards
+syntax; for the leak guard, the raw text is scanned, because a codename can hide in
+an attribute or a minified string that extraction would strip. Passages are embedded
+into a NumPy matrix under a gitignored `.concord/` directory; search is exact cosine
+nearest-neighbour, with multiple query phrasings max-merged and a
+maximal-marginal-relevance re-ranker [@carbonell1998] suppressing near-duplicates.
+The contradiction detector compares only value-bearing passages, so its cost is
+quadratic in that subset, not the whole corpus.
 
-The leak guard is separate and dependency-light: no machine-learning packages, runs
-on every commit, recall-complete over a user-supplied term list. Protected terms
-live in a gitignored ruleset so the sensitive list never enters version control;
-only a generic example ships with the package.
-
-The software includes a test suite, continuous integration, documentation, a
-reproducible benchmark harness with a public synthetic corpus, and an MIT licence.
+The leak guard is separate and dependency-light: no machine-learning packages,
+recall-complete over a user-supplied term list, run on every commit. Protected terms
+live in a gitignored ruleset, so the sensitive list never enters version control;
+only a generic example ships with the package. `concord types` reports exactly which
+file types are indexed. The software includes a test suite, continuous integration,
+documentation, a reproducible benchmark with a public synthetic corpus, and an MIT
+licence.
 
 # Acknowledgements
 

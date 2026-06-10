@@ -1,37 +1,37 @@
 # Concord
 
 ![Concord leak guard](https://img.shields.io/badge/concord-0%20leaks-brightgreen)
-![tests](https://img.shields.io/badge/tests-39%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-49%20passing-brightgreen)
 ![PyPI](https://img.shields.io/pypi/v/concord-ai?color=blue)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
-> ## ⚡ Up to ~11,600× less context to audit a large repo
+> ## ⚡ Find where your repo contradicts itself — across code *and* docs
 >
-> Concord answers a question about your repo from the **exact passages that matter** —
-> cited to `file:line` — reading a **near-constant ~200 tokens per query whatever the
-> repo's size.** On a 3.1M-token production codebase that's a **measured ~11,600×
-> reduction** versus reading the whole thing into a model, and the win grows with the
-> repo: ~90% less context on a small repo → **99.99%** at 3M tokens.
-> [_Measured across five real repositories →_](paper/)
+> `$49` on the pricing page, `$39` in an FAQ. `MIN_RESPONDENTS = 8` in a Python module,
+> `"min_n": 5` in a config. Concord catches the contradictions `grep` and concept-graphs
+> miss — **the same fact stated two different ways, wherever it lives** — and answers
+> questions about your repo from the **exact passages, cited to `file:line`**, instead
+> of reading the whole thing into a model.
 
 **Keep a sprawling repo telling one story.**
 
-Concord indexes the prose in a repository — docs, marketing copy, specs, READMEs —
-and lets you ask it three kinds of question:
+Concord indexes the meaningful content of a repository — docs, specs, READMEs, *and*
+the strings, comments and named constants in your code and config — and lets you:
 
-- **Lint** — *"does any internal codename / retired term / banned phrase appear in a
-  file that ships publicly?"* Deterministic, exact-match, recall‑complete on a known
-  list. Runs in CI or a pre-commit hook.
-- **Find** — *"where else do we say something like this?"* Exact **and** semantic
-  matches in one ranked result, so it catches paraphrases a `grep` would miss.
-- **Read** — *"summarise everything we've said about X, and flag where it contradicts
-  itself."* Retrieval-first, so only the relevant passages are pulled into context
-  instead of whole files.
+- **Radar** — *"where does the same fact disagree with itself?"* Same topic, same kind
+  of value (a price, a threshold, a gating constant), different number — across prose
+  **and** source (`$49` vs `$39`, `MIN_N = 8` vs `"min_n": 5`).
+- **Lint** — *"does any internal codename / retired term / banned phrase reach a file
+  that ships publicly?"* Deterministic, exact-match, recall‑complete on a known list,
+  scanning raw text. Runs in CI or a pre-commit hook.
+- **Find / Read** — *"where else do we say something like this?"* and *"answer X from
+  the repo."* Exact **and** semantic matches, cited to `file:line`, pulling only the
+  relevant passages into context instead of whole files.
 
-Concord is **computed, not generated**. The lint is regex. The ranking is geometry
-(cosine + an elbow cutoff). The only place a language model enters is the optional
-final *synthesis* of retrieved passages — and even that step is handed only the
-passages Concord selected, which is where the token savings come from.
+Concord is **computed, not generated**. The lint is regex; the ranking is geometry;
+extraction and the contradiction radar are deterministic. A language model enters only
+as an *optional* pass to adjudicate flagged contradictions or synthesise retrieved
+passages — handed only what Concord selected.
 
 ## Why it exists
 
@@ -48,15 +48,15 @@ is fuzzy and misses exact strings. Concord runs both signals together.
 
 ## Token efficiency
 
-Concord hands a model only the passages that matter, not the whole repo. Measured
-on a **24,416-passage** repository, answering *"find contradictory pricing
+Concord hands a model only the passages that matter, not the whole repo. On a large
+production repository (a few million tokens), answering *"find contradictory pricing
 information"* (chars/4 token estimate; reproduce with the commands in [`eval/`](eval/)):
 
 | Approach | Tokens into context | Gives you the conflicting values? |
 |----------|--------------------:|-----------------------------------|
-| Read the whole repo | **~3,100,000** | Yes — but it won't fit most context windows, and you pay for all of it on every query. |
+| Read the whole repo | **millions** | Yes — but it won't fit most context windows, and you pay for all of it on every query. |
 | [Graphify](https://github.com/safishamsi/graphify) (knowledge graph) | **~1,565** | **No** — 46 concept nodes + `file:line` pointers. Tells you *what relates to pricing*, not *where the numbers disagree*; you still open the files. |
-| **Concord** (passage retrieval) | **~290** | **Yes** — the verbatim passages, cited to `file:line`. |
+| **Concord** (passage retrieval) | **a few hundred** | **Yes** — the verbatim passages, cited to `file:line`. |
 
 A knowledge graph like [Graphify](https://github.com/safishamsi/graphify) maps how
 *concepts* connect — useful orientation. Concord retrieves the *verbatim prose* where
