@@ -58,23 +58,24 @@ We measure token efficiency across five repositories spanning two orders of
 magnitude in size — four public (`roperators`, `squawkbox`, `concord`, and
 `sentiment.ai`; 100 to 3,565 passages) and one large proprietary production
 repository (~24,400 passages, ~3.1M tokens) included as a scale anchor. Reading
-the top ten retrieved passages places a near-constant 130–310 tokens in context
-regardless of corpus size, whereas the naive full-corpus baseline grows linearly
-(\autoref{fig:scaling}). Context reduction therefore rises with scale, from ~90%
-on the smallest repository to ~99.99% on the largest — an approximately
-11,600-fold reduction at 3.1M tokens — closely tracking the structural relation
-$1 - k/N$ for read depth $k$ and passage count $N$. Query embedding takes
-approximately 313 ms on a consumer laptop CPU; the exact nearest-neighbour scan
-adds 0.2–3.3 ms across the full size range. A purely geometric stopping rule
-(elbow cutoff) was found to degrade at scale — on the largest repository it
-retains most of the ranked list — so a fixed read depth is the production default.
+the top ten retrieved passages places a roughly constant 140–310 tokens in
+context for four of the five repositories regardless of corpus size, whereas the
+naive full-corpus baseline grows linearly (\autoref{fig:scaling}); `concord` is an
+outlier at ~4,600 tokens because its dense HTML files segment into oversized
+passages. Context reduction therefore rises with scale, from ~90% on the smallest
+repository to ~99.99% on the largest — an approximately 11,600-fold reduction at
+3.1M tokens. Reduction approaches the structural ceiling $1 - k/N$ (read depth $k$,
+passage count $N$) at scale, but deviates when passage sizes are heterogeneous, as
+in the `concord` outlier. Query embedding takes approximately 313 ms on a consumer
+laptop CPU; the exact nearest-neighbour scan stays under 3.3 ms across the full
+size range. A purely geometric stopping rule (elbow cutoff) degrades badly at
+scale — on the largest repository its median return is the entire ranked list
+(24,409 of 24,416 passages) — so a fixed read depth is the production default.
 
-![Token-efficiency scaling across five repositories. Reading the top ten passages
-keeps per-query context cost nearly flat (left) while the naive full-corpus
-baseline grows linearly; context reduction consequently approaches 100% with
-corpus size (right), tracking the structural $1 - k/N$ bound. The `concord`
-repository is an outlier because dense HTML files segment into oversized
-passages.\label{fig:scaling}](fig_scaling.png){ width=100% }
+![Token-efficiency scaling across five repositories. Per-query context cost stays
+nearly flat (left) while the naive full-corpus baseline grows linearly, so
+reduction approaches 100% with corpus size (right), tracking the $1 - k/N$ bound.
+\label{fig:scaling}](fig_scaling.png){ width=100% }
 
 Second, **keyword search and manual review miss paraphrased inconsistencies.**
 A `grep` for `$49` will not find a conflicting `$39` elsewhere, and no reviewer
@@ -83,10 +84,11 @@ addresses this directly: it extracts typed values by regular expression, gates
 candidate pairs by embedding similarity (same topic) and shared subject words,
 and requires the values to be of the same type yet disjoint. On a synthetic
 five-document benchmark with twelve labelled conflict pairs, the radar recovers
-all twelve (recall 1.0) as a high-recall pre-filter; an optional language-model
-verification pass raises precision by examining full passage context. This
-asymmetric design is deliberate: a missed inconsistency is expensive, whereas a
-false candidate costs one dismissal in a review queue.
+all twelve (recall 1.0) among 69 flagged candidates (precision 0.17). The low
+precision is by design for a high-recall pre-filter, and an optional language-model
+verification pass adjudicates the false candidates by examining full passage
+context. This asymmetric design is deliberate: a missed inconsistency is expensive,
+whereas a false candidate costs one dismissal in a review queue.
 
 Existing tools address neighbouring but distinct problems. Spell- and
 style-checkers such as `Vale` [@vale] enforce per-sentence rules but do not reason
@@ -97,9 +99,9 @@ deterministic leak prevention in CI. Concord targets the specific maintenance
 task of keeping a sprawling corpus telling one story, with auditing as a
 first-class, low-token operation.
 
-Concord is aimed at technical writers, documentation engineers, and developers
-maintaining product and policy documentation, as well as at LLM-agent workflows
-that need grounded, citable context from a repository without ingesting it whole.
+Concord is aimed at technical writers and developers maintaining product and
+policy documentation, and at LLM-agent workflows that need grounded, citable
+context from a repository without ingesting it whole.
 
 # Functionality and design
 

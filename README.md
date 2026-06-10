@@ -1,8 +1,18 @@
 # Concord
 
 ![Concord leak guard](https://img.shields.io/badge/concord-0%20leaks-brightgreen)
-![tests](https://img.shields.io/badge/tests-24%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-39%20passing-brightgreen)
+![PyPI](https://img.shields.io/pypi/v/concord-ai?color=blue)
 ![license](https://img.shields.io/badge/license-MIT-blue)
+
+> ## ⚡ Up to ~11,600× less context to audit a large repo
+>
+> Concord answers a question about your repo from the **exact passages that matter** —
+> cited to `file:line` — reading a **near-constant ~200 tokens per query whatever the
+> repo's size.** On a 3.1M-token production codebase that's a **measured ~11,600×
+> reduction** versus reading the whole thing into a model, and the win grows with the
+> repo: ~90% less context on a small repo → **99.99%** at 3M tokens.
+> [_Measured across five real repositories →_](paper/)
 
 **Keep a sprawling repo telling one story.**
 
