@@ -129,7 +129,11 @@ class _Handler(BaseHTTPRequestHandler):
         if u.path in ("/", "/index.html"):
             html = (Path(__file__).parent / "explorer.html").read_text(encoding="utf-8")
             repo = os.path.basename(_STATE["root"].rstrip("/")) or _STATE["root"]
+            from collections import Counter
+            exts = Counter(os.path.splitext(p.file)[1].lower() or "?" for p in idx.passages)
+            types = " · ".join(f"{n}×{e}" for e, n in exts.most_common(12))
             html = (html.replace("__REPO__", repo).replace("__N__", f"{len(idx.passages):,}")
+                        .replace("__TYPES__", types or "—")
                         .replace("__GHBASE__", _STATE.get("ghbase", "")))
             return self._send(html.encode(), "text/html; charset=utf-8")
 

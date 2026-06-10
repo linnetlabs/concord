@@ -5,15 +5,15 @@
     {
       "repo": "roperators",
       "public": true,
-      "n_passages": 100,
-      "corpus_tokens": 2948,
-      "avg_passage_tokens": 29.5,
-      "read_tokens_fixed10": 293.6,
-      "reduction_fixed10_pct": 90.04,
-      "read_tokens_elbow": 2937.0,
-      "mean_elbow_k": 98.9,
+      "n_passages": 101,
+      "corpus_tokens": 2947,
+      "avg_passage_tokens": 29.2,
+      "read_tokens_fixed10": 275.6,
+      "reduction_fixed10_pct": 90.647,
+      "read_tokens_elbow": 2936.0,
+      "mean_elbow_k": 99.9,
       "reduction_elbow_pct": 0.373,
-      "scan_ms_per_query": 0.16
+      "scan_ms_per_query": 0.06
     },
     {
       "repo": "squawkbox",
@@ -31,41 +31,41 @@
     {
       "repo": "concord.ai",
       "public": true,
-      "n_passages": 270,
-      "corpus_tokens": 22352,
-      "avg_passage_tokens": 82.8,
-      "read_tokens_fixed10": 4568.2,
-      "reduction_fixed10_pct": 79.562,
-      "read_tokens_elbow": 13933.0,
-      "mean_elbow_k": 167.0,
-      "reduction_elbow_pct": 37.666,
-      "scan_ms_per_query": 0.18
+      "n_passages": 256,
+      "corpus_tokens": 19954,
+      "avg_passage_tokens": 77.9,
+      "read_tokens_fixed10": 1436.4,
+      "reduction_fixed10_pct": 92.802,
+      "read_tokens_elbow": 5021.6,
+      "mean_elbow_k": 64.6,
+      "reduction_elbow_pct": 74.834,
+      "scan_ms_per_query": 0.1
     },
     {
       "repo": "sentiment.ai",
       "public": true,
-      "n_passages": 3565,
-      "corpus_tokens": 2299635,
-      "avg_passage_tokens": 645.1,
-      "read_tokens_fixed10": 138.0,
+      "n_passages": 4066,
+      "corpus_tokens": 2299307,
+      "avg_passage_tokens": 565.5,
+      "read_tokens_fixed10": 137.1,
       "reduction_fixed10_pct": 99.994,
-      "read_tokens_elbow": 1149830.2,
-      "mean_elbow_k": 1782.6,
+      "read_tokens_elbow": 1149666.2,
+      "mean_elbow_k": 2033.1,
       "reduction_elbow_pct": 49.999,
-      "scan_ms_per_query": 0.28
+      "scan_ms_per_query": 0.89
     },
     {
       "repo": "ProdRepo (priv.)",
       "public": false,
-      "n_passages": 24416,
-      "corpus_tokens": 3139453,
-      "avg_passage_tokens": 128.6,
-      "read_tokens_fixed10": 270.1,
-      "reduction_fixed10_pct": 99.991,
-      "read_tokens_elbow": 2746980.9,
-      "mean_elbow_k": 21360.5,
+      "n_passages": 34241,
+      "corpus_tokens": 4049662,
+      "avg_passage_tokens": 118.3,
+      "read_tokens_fixed10": 83.2,
+      "reduction_fixed10_pct": 99.998,
+      "read_tokens_elbow": 3543413.8,
+      "mean_elbow_k": 29957.4,
       "reduction_elbow_pct": 12.501,
-      "scan_ms_per_query": 3.3
+      "scan_ms_per_query": 5.26
     }
   ]
 }

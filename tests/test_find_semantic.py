@@ -18,7 +18,7 @@ class FakeEmb:
 
 def _index(tmp_path):
     (tmp_path / "a.md").write_text("alpha alpha alpha", encoding="utf-8")
-    (tmp_path / "b.md").write_text("bravo bravo", encoding="utf-8")
+    (tmp_path / "b.md").write_text("bravo bravo bravo", encoding="utf-8")
     return Index.build(tmp_path, ruleset=None, embedder=FakeEmb())
 
 

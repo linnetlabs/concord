@@ -40,8 +40,10 @@ class Index:
     ) -> "Index":
         if np is None:
             raise RuntimeError("index requires the embeddings extra: pip install \"concord-ai[embeddings]\"")
-        passages = list(chunk_repo(root, ruleset))
+        passages = list(chunk_repo(root, ruleset, prose=True))
         embedder = embedder or get_embedder()
+        if not passages:
+            return cls(passages, None)  # nothing indexable — empty index, not a crash
         vecs = np.asarray(embedder.embed([p.text for p in passages], kind="passage"), dtype="float32")
         norms = np.linalg.norm(vecs, axis=1, keepdims=True)
         norms[norms == 0] = 1.0
@@ -75,7 +77,7 @@ class Index:
         for rel in changed:
             fp = Path(root) / rel
             if fp.suffix.lower() in _TEXT_EXTS and fp.exists():
-                fresh.extend(chunk_file(fp, rel=rel))
+                fresh.extend(chunk_file(fp, rel=rel, prose=True))
         if fresh:
             vecs = np.asarray(embedder.embed([p.text for p in fresh], kind="passage"), dtype="float32")
             norms = np.linalg.norm(vecs, axis=1, keepdims=True)

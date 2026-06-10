@@ -35,7 +35,7 @@ def test_touch_without_edit_is_not_a_change(tmp_path):
 
 
 def test_index_save_writes_manifest_and_update_uses_it(tmp_path):
-    (tmp_path / "a.md").write_text("alpha apple", encoding="utf-8")
+    (tmp_path / "a.md").write_text("alpha apple pie", encoding="utf-8")
     idx = Index.build(tmp_path, ruleset=None, embedder=FakeEmb())
     idx.save(tmp_path)
     assert (tmp_path / ".concord" / "manifest.json").exists()

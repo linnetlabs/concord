@@ -79,7 +79,22 @@ def cmd_index(args) -> int:
     rules = load_ruleset(_default_rules(root))
     idx = Index.build(root, rules, embedder=get_embedder(args.model))
     idx.save(root, meta={"model": args.model, "commit": gitdiff.head(root)})
-    print(f"Indexed {len(idx.passages)} passage(s) -> {root}/.concord/", file=sys.stderr)
+    from collections import Counter
+    by_ext = Counter(Path(p.file).suffix.lower() or "(none)" for p in idx.passages)
+    breakdown = ", ".join(f"{n}×{e}" for e, n in by_ext.most_common())
+    print(f"Indexed {len(idx.passages)} passage(s) [{breakdown}] -> {root}/.concord/", file=sys.stderr)
+    return 0
+
+
+def cmd_types(args) -> int:
+    from . import extract
+    exts = extract.supported_extensions()
+    print("Concord semantically indexes these file types (extraction-cleaned content):")
+    print("  " + "  ".join(exts))
+    print("\nEach type has an extractor that keeps the meaningful units (prose, comments,")
+    print("strings, config values, gating constants) and drops the syntax. The leak-lint")
+    print("scans all of these too, but raw. Add a language by registering an extractor")
+    print("in concordai/extract.py.")
     return 0
 
 
@@ -395,6 +410,9 @@ def main(argv=None) -> int:
     sp.add_argument("path", nargs="?", default=".")
     sp.add_argument("--model", default=None, help="sentiment.ai model (e.g. e5-small); default = sentiment.ai's default")
     sp.set_defaults(func=cmd_index)
+
+    sp = sub.add_parser("types", help="list the file types Concord semantically indexes")
+    sp.set_defaults(func=cmd_types)
 
     sp = sub.add_parser("update", help="re-embed only what git says changed since the last index")
     sp.add_argument("path", nargs="?", default=".")

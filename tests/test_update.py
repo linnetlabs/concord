@@ -17,14 +17,14 @@ class FakeEmb:
 
 
 def test_update_replaces_changed_and_drops_deleted(tmp_path):
-    (tmp_path / "a.md").write_text("alpha apple\n\nsecond para a a a", encoding="utf-8")
-    (tmp_path / "b.md").write_text("beta banana", encoding="utf-8")
+    (tmp_path / "a.md").write_text("alpha apple pie tasty", encoding="utf-8")
+    (tmp_path / "b.md").write_text("beta banana fruit bowl", encoding="utf-8")
 
     idx = Index.build(tmp_path, ruleset=None, embedder=FakeEmb())
     assert {p.file for p in idx.passages} == {"a.md", "b.md"}
     assert idx.matrix.shape[0] == len(idx.passages)
 
-    (tmp_path / "a.md").write_text("alpha changed", encoding="utf-8")
+    (tmp_path / "a.md").write_text("alpha changed right now", encoding="utf-8")
     (tmp_path / "b.md").unlink()
     idx.update(tmp_path, changed=["a.md"], deleted=["b.md"], embedder=FakeEmb())
 

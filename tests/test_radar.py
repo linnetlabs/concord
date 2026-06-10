@@ -46,7 +46,23 @@ def test_near_identical_copies_not_flagged():
     assert radar.find_conflicts([a, b], _sim2(), sim_threshold=0.8)["conflicts"] == []
 
 
-def test_prose_only_skips_markup():
-    a = _p("a.html", "Bluebird Cloud is priced at $49 per seat billed annually now")
-    b = _p("b.html", "Each Bluebird Cloud seat is $39 monthly on the standard tier")
+def test_skips_hidden_tool_dirs():
+    a = _p(".claude/x.md", "Bluebird Cloud is priced at $49 per seat billed annually now")
+    b = _p("b.md", "Each Bluebird Cloud seat is $39 monthly on the standard tier plan")
     assert radar.find_conflicts([a, b], _sim2(), sim_threshold=0.8)["conflicts"] == []
+
+
+def test_typed_values_catches_code_config_forms():
+    v = radar._typed_values("MIN_RESPONDENTS = 8  # anonymity floor")
+    assert any("8" in x for x in v["config"])
+    v2 = radar._typed_values('"min_respondents": 5')
+    assert any("5" in x for x in v2["config"])
+
+
+def test_flags_gate_constant_conflict_across_code_and_config():
+    a = _p("privacy.py", "MIN_RESPONDENTS = 8  # anonymity floor before aggregation")
+    b = _p("settings.json", '"min_respondents": 5')
+    r = radar.find_conflicts([a, b], _sim2(), sim_threshold=0.8)
+    assert len(r["conflicts"]) == 1
+    assert {c for c in r["conflicts"][0]["clash"]}  # the disagreeing values surfaced
+    assert {r["conflicts"][0]["a"]["file"], r["conflicts"][0]["b"]["file"]} == {"privacy.py", "settings.json"}

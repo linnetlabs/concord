@@ -18,6 +18,9 @@ _TYPES = [
     ("threshold", re.compile(r"n\s?[≥><]=?\s?\d+", re.I)),            # n ≥ 8 · n>=4
     ("percent", re.compile(r"\b\d+(?:\.\d+)?\s?%")),                   # 30%
     ("duration", re.compile(r"\b\d+\s?(?:days?|months?|years?|weeks?)\b", re.I)),  # 30 days
+    # a named numeric constant in code/config — MIN_N = 8 · "min_n": 5 · maxSeats=100.
+    # The identifier rides along in the value so a conflict reads NAME=v vs NAME=v'.
+    ("config", re.compile(r"[A-Za-z_][A-Za-z0-9_]{2,}[\"']?\s*[:=]\s*[\"']?\$?\d[\d,]*(?:\.\d+)?")),
 ]
 
 
@@ -66,11 +69,10 @@ def find_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbors: int
 
     rows, vals, cont = [], [], []
     for i, p in enumerate(passages):
-        # prose only, and skip tool/hidden dirs (.claude, .planning) + markup,
-        # which bury real conflicts under CSS numbers and test-fixture figures
+        # skip tool/hidden dirs (.claude, .planning). Passages here are already
+        # extraction-cleaned, so code/config conflicts (MIN_N=8 vs "min_n":5) are
+        # in scope alongside prose — the extractor dropped the syntax noise.
         if any(part.startswith(".") for part in p.file.split("/")):
-            continue
-        if p.file.rsplit(".", 1)[-1].lower() not in ("md", "markdown", "txt", "rst", "mdx"):
             continue
         v = _typed_values(p.text)
         if v:
