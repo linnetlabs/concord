@@ -72,7 +72,7 @@ def load_passages(name, path, use_index):
             raise RuntimeError(f"{name}: no index — run `concord index {path}`")
         texts = [p.text for p in idx.passages]
         return idx.passages, texts, np.asarray(idx.matrix, dtype="float32")
-    passages = list(chunk_repo(path))
+    passages = list(chunk_repo(path, prose=True))  # structure-aware extraction
     texts = [p.text for p in passages]
     return passages, texts, None
 

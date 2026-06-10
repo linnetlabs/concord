@@ -90,14 +90,12 @@ python eval/plot_scaling.py           # render the scaling figure    → paper/f
 pre-filter (0 false negatives over 12 pairs); LLM verification raises precision by
 reading full passage context.
 
-**Token efficiency (five repos, 100 → 24,416 passages):** reading the top ten
-passages keeps per-query context cost nearly flat (~130–310 tokens) while the
-naive full-corpus baseline grows linearly. Reduction rises with scale, ~90% →
-~99.99% (≈11,600× at 3.1M tokens), tracking the structural bound `1 − k/N`. The
-geometric elbow cutoff degrades at scale (retains most of the ranked list on the
-largest repo), so **fixed read depth is the production default**. The exact
-nearest-neighbour scan stays at 0.2–3.3 ms/query across the full size range.
-
-*Caveat:* corpora with dense HTML (few blank-line boundaries) segment into
-oversized passages, inflating per-query read cost — visible as the `concord`
-outlier in the scaling figure.
+**Token efficiency (five repos, 16K → 2.08M corpus tokens, structure-aware
+extraction):** reading the top ten passages costs a near-constant **150–307 tokens
+per query** regardless of corpus size, while the naive full-corpus baseline grows
+with it. Reduction rises with scale, ~98% → ~99.99%. The exact nearest-neighbour
+scan stays at 0.1–13 ms/query across the full range (the largest is a ~103K-passage
+production repository). Structure-aware extraction (visible HTML text, code
+comments/strings/constants, prose paragraphs — not markup or syntax) is what makes
+read cost flat: earlier raw chunking let un-extracted HTML/JS dominate retrieval and
+distort these numbers.

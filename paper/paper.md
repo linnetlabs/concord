@@ -67,8 +67,11 @@ costs one dismissal.
 
 **Auditing a repository with a language model is token-expensive.** Feeding a whole
 repository into context to answer one question scales poorly; Concord instead
-retrieves a small, ranked, citable set of passages. Neighbouring tools solve
-different problems: prose linters such as `Vale` [@vale] enforce per-sentence rules
+retrieves a small, ranked, citable set of passages at a near-constant cost. Across
+five repositories spanning two orders of magnitude (16K to 2.08M corpus tokens),
+answering a query reads only 150–307 tokens, while the naive baseline of reading the
+whole corpus grows with it (\autoref{fig:scaling}); context reduction therefore rises
+from ~98% to ~99.99% with scale. Neighbouring tools solve different problems: prose linters such as `Vale` [@vale] enforce per-sentence rules
 but do not reason across files about whether two passages agree; retrieval frameworks
 such as `LlamaIndex` [@llamaindex] provide general document search but are not
 oriented toward consistency auditing, `file:line` citation, or deterministic leak
@@ -78,6 +81,12 @@ not the conflicting text. Asked *"find contradictory pricing information"* over 
 production repository, Graphify returns 46 concept nodes (~1,565 tokens) of pointers,
 whereas Concord returns the verbatim passages cited to `file:line` and its radar
 names the values that disagree.
+
+![Per-query read cost is near-constant (~150–307 tokens) across five repositories
+spanning 16K–2.08M corpus tokens (left, log–log), while reading the whole corpus
+grows with size, so context reduction climbs toward 100% (right). The largest is a
+proprietary production repository (~103K passages); token counts use a chars/4
+proxy.\label{fig:scaling}](fig_scaling.png){ width=100% }
 
 Concord is aimed at technical writers and developers maintaining product, policy and
 configuration that must stay consistent, and at LLM-agent workflows that need
