@@ -48,21 +48,20 @@ is fuzzy and misses exact strings. Concord runs both signals together.
 
 ## Token efficiency
 
-Concord earns its keep on the synthesis step: it hands a model only the passages that
-matter, not the whole repo. Measured on this project's own documentation (a
-**14,551-passage** corpus), answering *"find contradictory pricing information"*
-(token counts are a chars/4 estimate):
+Concord hands a model only the passages that matter, not the whole repo. Measured
+on a **24,416-passage** repository, answering *"find contradictory pricing
+information"* (chars/4 token estimate; reproduce with the commands in [`eval/`](eval/)):
 
-| Approach | Tokens into context | Gives you the conflicting sentences? |
-|----------|--------------------:|--------------------------------------|
-| Read the whole directory | **~1,800,000** | Yes — but it won't fit most context windows, and you pay for all of it on every query. |
-| graphify (concept graph) | **~1,600** | **No** — returns concept nodes + file pointers, zero verbatim prices. Tells you *what relates to pricing*, not *where the numbers disagree*; you still have to open the files. |
-| **Concord** (passage retrieval) | **~190** | **Yes** — the actual price statements, cited to `file:line`. |
+| Approach | Tokens into context | Gives you the conflicting values? |
+|----------|--------------------:|-----------------------------------|
+| Read the whole repo | **~3,100,000** | Yes — but it won't fit most context windows, and you pay for all of it on every query. |
+| [Graphify](https://github.com/safishamsi/graphify) (knowledge graph) | **~1,565** | **No** — 46 concept nodes + `file:line` pointers. Tells you *what relates to pricing*, not *where the numbers disagree*; you still open the files. |
+| **Concord** (passage retrieval) | **~290** | **Yes** — the verbatim passages, cited to `file:line`. |
 
-graphify and Concord are **complementary, not competitors**: graphify maps how
-*concepts* connect; Concord retrieves the *verbatim prose* where a claim lives and
-where it conflicts. For "show me the contradictory pricing," you need the passages —
-which is why graphify alone isn't enough.
+A knowledge graph like [Graphify](https://github.com/safishamsi/graphify) maps how
+*concepts* connect — useful orientation. Concord retrieves the *verbatim prose* where
+a claim lives, and its radar names the specific values that disagree. They're
+complementary: the graph for structure, Concord for the exact conflicting lines.
 
 > **Honest caveat — completeness queries.** These numbers are for *targeted* questions.
 > For "find **all** X" sweeps (e.g. "every GDPR commitment"), a small top-k with an

@@ -27,8 +27,8 @@ a price quoted one way in a pricing page and another in an FAQ, an anonymity
 threshold of `n >= 8` in a policy and `n >= 5` in a help article. Such
 contradictions are hard to find by hand and easy to ship.
 
-`Concord` is an open-source Python tool that keeps a documentation corpus
-internally consistent. It provides three composable capabilities over a
+`Concord` (installed as `concord-ai`) is an open-source Python tool that keeps a
+documentation corpus internally consistent. It provides three composable capabilities over a
 repository's text files: (1) a **deterministic leak guard** that fails
 continuous-integration if a banned term (an internal codename, a retired product
 name) reaches a file marked public; (2) **semantic retrieval** that answers
@@ -95,9 +95,13 @@ style-checkers such as `Vale` [@vale] enforce per-sentence rules but do not reas
 across files about whether two passages agree. Retrieval-augmented generation
 frameworks such as `LlamaIndex` [@llamaindex] provide general document retrieval
 but are not oriented toward consistency auditing, citation to `file:line`, or
-deterministic leak prevention in CI. Concord targets the specific maintenance
-task of keeping a sprawling corpus telling one story, with auditing as a
-first-class, low-token operation.
+deterministic leak prevention in CI. Knowledge-graph tools such as Graphify
+[@graphify] return concept nodes with file pointers — useful orientation, but not
+the conflicting text. On a 24,400-passage repository, *"find contradictory pricing
+information"* yields 46 nodes (~1,565 tokens) of pointers from Graphify versus ~290
+tokens of verbatim, citable passages from Concord — and only Concord's radar reports
+the disagreeing values. Concord targets the specific maintenance task of keeping a
+sprawling corpus telling one story, with auditing as a first-class operation.
 
 Concord is aimed at technical writers and developers maintaining product and
 policy documentation, and at LLM-agent workflows that need grounded, citable
@@ -107,18 +111,16 @@ context from a repository without ingesting it whole.
 
 A repository's text files are segmented into paragraph-level passages with line
 spans, so every result is citable like a `grep` hit. Passages are embedded into a
-NumPy matrix stored under a gitignored `.concord/` directory; similarity search is
-exact cosine nearest-neighbour. Multiple query phrasings are max-merged to recover
-recall a single phrasing misses, and a maximal-marginal-relevance re-ranker
-[@carbonell1998] suppresses near-duplicate passages. The contradiction detector
-scopes its pairwise comparison to value-bearing passages, giving complexity
-quadratic in that subset rather than in the full corpus.
+NumPy matrix under a gitignored `.concord/` directory; similarity search is exact
+cosine nearest-neighbour. Multiple query phrasings are max-merged to recover recall
+a single phrasing misses, and a maximal-marginal-relevance re-ranker [@carbonell1998]
+suppresses near-duplicates. The contradiction detector scopes its pairwise comparison
+to value-bearing passages, giving complexity quadratic in that subset, not the corpus.
 
-The leak guard is intentionally separate and dependency-light: it requires no
-machine-learning packages, runs on every commit, and is recall-complete over a
-user-supplied term list. Protected terms live in a gitignored ruleset so that the
-sensitive list never enters version control; only a generic example ships with the
-package.
+The leak guard is separate and dependency-light: no machine-learning packages, runs
+on every commit, recall-complete over a user-supplied term list. Protected terms
+live in a gitignored ruleset so the sensitive list never enters version control;
+only a generic example ships with the package.
 
 The software includes a test suite, continuous integration, documentation, a
 reproducible benchmark harness with a public synthetic corpus, and an MIT licence.

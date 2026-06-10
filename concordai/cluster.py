@@ -7,8 +7,7 @@ near-duplicates and misses the scattered rest. A topic map fixes that two ways:
 
 Two levels — MiniBatchKMeans leaf clusters, then agglomerative super-clusters over the
 leaf centroids — give an annotated hierarchy. Labels are tf-idf top terms (deterministic,
-no model). This is passage-level (verbatim prose), complementary to graphify's
-entity-level community detection.
+no model). This operates at the passage level (verbatim prose), not the entity level.
 """
 from __future__ import annotations
 
