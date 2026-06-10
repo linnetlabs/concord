@@ -9,7 +9,7 @@
 >
 > `$49` on the pricing page, `$39` in an FAQ. `MIN_RESPONDENTS = 8` in a Python module,
 > `"min_n": 5` in a config. Concord catches the contradictions `grep` and concept-graphs
-> miss (the same fact stated two different ways, wherever it lives) and answers
+> don't surface (the same fact stated two different ways, wherever it lives) and answers
 > questions about your repo from the **exact passages, cited to `file:line`**, instead
 > of reading the whole thing into a model.
 
@@ -52,7 +52,7 @@ is fuzzy and misses exact strings. Concord runs both signals together.
 
 ## Token efficiency
 
-Concord hands a model only the passages that matter, not the whole repo. On a large
+Concord hands a model only the relevant passages, not the whole repo. On a large
 production repository (a few million tokens), answering *"find contradictory pricing
 information"* (chars/4 token estimate; reproduce with the commands in [`eval/`](eval/)):
 
@@ -66,6 +66,9 @@ A knowledge graph like [Graphify](https://github.com/safishamsi/graphify) maps h
 *concepts* connect, useful for orientation. Concord retrieves the *verbatim prose* where
 a claim lives, and its radar names the specific values that disagree. They're
 complementary: the graph for structure, Concord for the exact conflicting lines.
+
+These counts are the read *budget* (what goes into context), not a measure of answer
+quality; retrieval accuracy is benchmarked separately in [`eval/`](eval/).
 
 > **Honest caveat (completeness queries).** These numbers are for *targeted* questions.
 > For "find **all** X" sweeps (e.g. "every GDPR commitment"), a small top-k with an

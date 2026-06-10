@@ -60,18 +60,19 @@ thresholds, durations, percentages, and numeric config constants). It detects
 same-type values in similar contexts rather than verifying that two occurrences name
 the identical constant, so it is a candidate generator, not a verdict. On a small
 synthetic corpus (five documents, twelve labelled conflict pairs), at the production
-similarity threshold it recovers 8 of 12 conflicts (recall 0.67) at precision 0.50;
-relaxing the threshold, appropriate for so small a corpus, recovers all twelve at
-precision 0.17. The design favours recall: a missed inconsistency is expensive, a
+similarity threshold (0.88) it recovers 8 of 12 conflicts (recall 0.67) at precision
+0.50; relaxing the threshold to 0.60, appropriate for so small a corpus, recovers all
+twelve at precision 0.17. The design favours recall: a missed inconsistency is expensive, a
 false candidate costs one dismissal, and an optional language-model pass adjudicates
 the candidates by reading full context.
 
 **Auditing a repository with a language model is token-expensive.** Feeding a whole
 repository into context to answer one question scales poorly; Concord instead
-retrieves a fixed number of ranked, citable passages. By construction this bounds the
-read cost: reading the top ten passages costs a few hundred tokens regardless of
-corpus size (150 to 307 tokens across five repositories from 16K to 2.08M corpus
-tokens, Figure 1), while reading the whole corpus would grow with it. The figure
+retrieves a fixed number of citable passages, ordered by embedding similarity. By
+construction this bounds the read cost: reading the top ten passages costs a few
+hundred tokens regardless of corpus size (150 to 307 tokens across four repositories
+from 17K to 2.08M corpus tokens, Figure 1), while reading the whole corpus would grow
+with it. The figure
 characterises the read budget, not retrieval quality; quality is measured separately
 on the labelled corpus above. Neighbouring tools solve different problems: prose
 linters such as `Vale` [@vale] enforce per-sentence rules but do not reason across
@@ -79,13 +80,13 @@ files about whether two passages agree; retrieval frameworks such as `LlamaIndex
 [@llamaindex] provide general document search but are not oriented toward consistency
 auditing, `file:line` citation, or deterministic leak prevention in CI; and
 knowledge-graph tools such as Graphify [@graphify] map how concepts relate, returning
-concept nodes and file pointers rather than the conflicting text. Measured on a large
-private repository, the question *"find contradictory pricing information"* returned
-from Graphify 46 concept nodes (about 1,565 tokens) of pointers, where Concord returns
-the verbatim passages cited to `file:line` and names the values that disagree.
+concept nodes and file pointers rather than the conflicting text. The two surface
+different things: on one query over a large private repository (*"find contradictory
+pricing information"*), Graphify returned a concept map of 46 nodes and file pointers,
+while Concord returns the verbatim passages cited to `file:line`.
 
 ![Per-query read cost is bounded by the fixed read depth: reading the top ten
-passages costs 150 to 307 tokens across five repositories spanning 16K to 2.08M
+passages costs 150 to 307 tokens across four repositories spanning 17K to 2.08M
 corpus tokens (left, log-log), while reading the whole corpus would grow with size
 (right). This characterises the read budget, not retrieval quality. The largest
 repository is a proprietary production codebase (about 103K passages); token counts
@@ -107,8 +108,8 @@ maximal-marginal-relevance re-ranker [@carbonell1998] suppressing near-duplicate
 The contradiction detector compares only value-bearing passages, so its cost is
 quadratic in that subset, not the whole corpus.
 
-The leak guard is separate and dependency-light: no machine-learning packages,
-recall-complete over a user-supplied term list, run on every commit. Protected terms
+The leak guard is separate and dependency-light: no machine-learning packages, exact
+string matching over a user-supplied term list, run on every commit. Protected terms
 live in a gitignored ruleset, so the sensitive list never enters version control;
 only a generic example ships with the package. `concord types` reports exactly which
 file types are indexed. The software includes a test suite, continuous integration,

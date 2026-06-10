@@ -6,7 +6,7 @@ on:
   pull_request:
 
 # Fails the build if a banned term (your rules.yaml) reaches a public file.
-# In another repo, replace `uses: ./` with `uses: linnetlabs/concord@v1`.
+# In another repo, use a run step instead: pip install concord-ai && concord lint . --scope public
 jobs:
   leak-guard:
     runs-on: ubuntu-latest

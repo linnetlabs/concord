@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Concord: keep a sprawling repo telling one story</title>
-<meta name="description" content="Concord points your LLM at the exact passages (cited to file:line) so it answers from your real docs instead of guessing, and flags where they contradict themselves, reading a few hundred tokens instead of the whole repo. Grounded, checkable AI for your repo. An open-source tool by Linnet Labs.">
+<meta name="description" content="Concord points your LLM at the exact passages (cited to file:line) so it answers from your real docs instead of working from memory, and flags where they contradict themselves, reading a few hundred tokens instead of the whole repo. Grounded, checkable AI for your repo. An open-source tool by Linnet Labs.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -168,7 +168,7 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
 <header class="hero"><div class="wrap">
   <span class="eyebrow">// grounded AI · cites every line</span>
   <h1>Keep a sprawling repo <span class="accent">telling one story.</span></h1>
-  <p class="lead">Concord points your LLM at the <b>exact passages, cited to file:line</b>, so it answers from your real docs instead of guessing, and flags where they quietly <b>contradict themselves</b>, reading a few hundred tokens instead of the whole repo. <b>AI you can check.</b></p>
+  <p class="lead">Concord points your LLM at the <b>exact passages, cited to file:line</b>, so it answers from your real docs instead of working from memory, and flags where they quietly <b>contradict themselves</b>, reading a few hundred tokens instead of the whole repo. <b>AI you can check.</b></p>
   <div class="cta-row">
     <a class="btn btn-primary" href="#install">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -208,7 +208,7 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
 <section id="how"><div class="wrap">
   <span class="kicker">Three jobs, one engine</span>
   <h2>Find. Compare. Guard.</h2>
-  <p class="section-lead">Every mode is a view over the same primitive: retrieve the exact prose that matters, so the model reasons over the right lines instead of the whole repo.</p>
+  <p class="section-lead">Every mode is a view over the same primitive: retrieve the exact prose for the question, so the model reasons over the right lines instead of the whole repo.</p>
   <div class="grid3">
     <div class="feature">
       <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg></div>
@@ -269,12 +269,14 @@ pip install concord-ai
 concord <span class="b">init</span> .          <span class="c"># scaffold rules.yaml (gitignored) + .gitignore it</span>
 concord <span class="b">lint</span> .          <span class="c"># fail CI if a codename reaches a public file</span>
 
-<span class="c"># + semantic search / contradiction-finding</span>
+<span class="c"># + semantic search / contradiction-finding (beta)</span>
 pip install <span class="g">"concord-ai[embeddings]"</span>
 concord <span class="b">index</span> .         <span class="c"># build the local index (self-ignored)</span>
+concord <span class="b">radar</span> .         <span class="c"># find where the same value disagrees across files</span>
 concord <span class="b">read</span> <span class="g">"what have we said about pricing?"</span>
 </pre>
   </div>
+  <p class="note" style="margin-top:12px">Lint is stable. The semantic features work and are tested; treat them as beta.</p>
 </div></section>
 
 <footer><div class="wrap row">

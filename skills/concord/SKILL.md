@@ -45,7 +45,7 @@ it or re-scan with grep. If `lint` reports semantic terms it does not cover, run
 ## find
 
 ```bash
-concord find "founding-free pricing"
+concord find "annual subscription pricing"
 ```
 
 Returns exact hits (score `=`) and semantic hits (cosine) merged and ranked. Use it
@@ -56,7 +56,7 @@ wording before I change this line").
 
 ```bash
 concord read "what have we said about pricing?" \
-  --also "Compass and Climate price per user" --also "subscription cost tiers"
+  --also "price per user per month" --also "subscription cost tiers"
 ```
 
 `read` returns a **ranked window**, not a fixed top-k. As the driver you do two things
