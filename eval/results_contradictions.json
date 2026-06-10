@@ -1,14 +1,28 @@
 {
   "n_passages": 59,
   "n_files": 5,
-  "value_passages": 17,
   "n_ground_truth_pairs": 12,
   "n_ground_truth_unique": 6,
-  "n_candidates": 69,
-  "tp": 12,
-  "fp": 57,
-  "fn": 0,
-  "precision": 0.1739,
-  "recall": 1.0,
-  "f1": 0.2963
+  "production_threshold": 0.88,
+  "by_threshold": {
+    "0.88": {
+      "threshold": 0.88,
+      "n_candidates": 16,
+      "tp": 8,
+      "fp": 8,
+      "fn": 4,
+      "precision": 0.5,
+      "recall": 0.6667
+    },
+    "0.60": {
+      "threshold": 0.6,
+      "n_candidates": 69,
+      "tp": 12,
+      "fp": 57,
+      "fn": 0,
+      "precision": 0.1739,
+      "recall": 1.0
+    }
+  },
+  "note": "File-pair recall on a controlled synthetic corpus authored to exercise the radar; a smoke test, not an independent benchmark."
 }

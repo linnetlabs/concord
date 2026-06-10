@@ -16,19 +16,6 @@
       "scan_ms_per_query": 0.23
     },
     {
-      "repo": "squawkbox",
-      "public": true,
-      "n_passages": 1205,
-      "corpus_tokens": 16235,
-      "avg_passage_tokens": 13.5,
-      "read_tokens_fixed10": 293.5,
-      "reduction_fixed10_pct": 98.192,
-      "read_tokens_elbow": 8090.8,
-      "mean_elbow_k": 599.2,
-      "reduction_elbow_pct": 50.165,
-      "scan_ms_per_query": 0.07
-    },
-    {
       "repo": "concord.ai",
       "public": true,
       "n_passages": 1023,

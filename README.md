@@ -5,42 +5,46 @@
 ![PyPI](https://img.shields.io/pypi/v/concord-ai?color=blue)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
-> ## ⚡ Find where your repo contradicts itself — across code *and* docs
+> ## ⚡ Find where your repo contradicts itself, across code *and* docs
 >
 > `$49` on the pricing page, `$39` in an FAQ. `MIN_RESPONDENTS = 8` in a Python module,
 > `"min_n": 5` in a config. Concord catches the contradictions `grep` and concept-graphs
-> miss — **the same fact stated two different ways, wherever it lives** — and answers
+> miss (the same fact stated two different ways, wherever it lives) and answers
 > questions about your repo from the **exact passages, cited to `file:line`**, instead
 > of reading the whole thing into a model.
 
+**Status:** `init` and `lint` work today with no ML. The semantic features (`index`,
+`find`, `read`, `radar`, `ui`) need the `[embeddings]` extra and are usable now; treat
+them as beta. Embeddings run locally via [sentiment.ai](https://github.com/BenWiseman/sentiment.ai).
+
 **Keep a sprawling repo telling one story.**
 
-Concord indexes the meaningful content of a repository — docs, specs, READMEs, *and*
-the strings, comments and named constants in your code and config — and lets you:
+Concord indexes the meaningful content of a repository (docs, specs, READMEs, and the
+strings, comments and named constants in your code and config) and lets you:
 
-- **Radar** — *"where does the same fact disagree with itself?"* Same topic, same kind
-  of value (a price, a threshold, a gating constant), different number — across prose
-  **and** source (`$49` vs `$39`, `MIN_N = 8` vs `"min_n": 5`).
-- **Lint** — *"does any internal codename / retired term / banned phrase reach a file
-  that ships publicly?"* Deterministic, exact-match, recall‑complete on a known list,
-  scanning raw text. Runs in CI or a pre-commit hook.
-- **Find / Read** — *"where else do we say something like this?"* and *"answer X from
-  the repo."* Exact **and** semantic matches, cited to `file:line`, pulling only the
+- **Radar:** *"where does the same fact disagree with itself?"* Same topic, same kind
+  of value (a price, a threshold, a gating constant), different number, across prose
+  and source (`$49` vs `$39`, `MIN_N = 8` vs `"min_n": 5`).
+- **Lint:** *"does any internal codename or retired term reach a file that ships
+  publicly?"* Deterministic exact-match over a known term list, scanning raw text.
+  Runs in CI or a pre-commit hook.
+- **Find / Read:** *"where else do we say something like this?"* and *"answer X from
+  the repo."* Exact and semantic matches, cited to `file:line`, pulling only the
   relevant passages into context instead of whole files.
 
 Concord is **computed, not generated**. The lint is regex; the ranking is geometry;
 extraction and the contradiction radar are deterministic. A language model enters only
 as an *optional* pass to adjudicate flagged contradictions or synthesise retrieved
-passages — handed only what Concord selected.
+passages, handed only what Concord selected.
 
 ## Why it exists
 
 Two failure modes plague any repo where strategy, internal notes, and public-facing
 copy live side by side:
 
-1. **Leaks** — an internal codename or a retired product name slips into a published
+1. **Leaks:** an internal codename or a retired product name slips into a published
    page.
-2. **Drift** — the same fact (a price, a policy, a product name) is stated three
+2. **Drift:** the same fact (a price, a policy, a product name) is stated three
    different ways across three files, and nobody notices.
 
 A plain `grep` catches neither paraphrases nor contradictions. A vector search alone
@@ -54,16 +58,16 @@ information"* (chars/4 token estimate; reproduce with the commands in [`eval/`](
 
 | Approach | Tokens into context | Gives you the conflicting values? |
 |----------|--------------------:|-----------------------------------|
-| Read the whole repo | **millions** | Yes — but it won't fit most context windows, and you pay for all of it on every query. |
-| [Graphify](https://github.com/safishamsi/graphify) (knowledge graph) | **~1,565** | **No** — 46 concept nodes + `file:line` pointers. Tells you *what relates to pricing*, not *where the numbers disagree*; you still open the files. |
-| **Concord** (passage retrieval) | **a few hundred** | **Yes** — the verbatim passages, cited to `file:line`. |
+| Read the whole repo | **millions** | Yes, but it won't fit most context windows, and you pay for all of it on every query. |
+| [Graphify](https://github.com/safishamsi/graphify) (knowledge graph) | **~1,565** | **No.** 46 concept nodes plus `file:line` pointers. Tells you *what relates to pricing*, not *where the numbers disagree*; you still open the files. |
+| **Concord** (passage retrieval) | **a few hundred** | **Yes.** The verbatim passages, cited to `file:line`. |
 
 A knowledge graph like [Graphify](https://github.com/safishamsi/graphify) maps how
-*concepts* connect — useful orientation. Concord retrieves the *verbatim prose* where
+*concepts* connect, useful for orientation. Concord retrieves the *verbatim prose* where
 a claim lives, and its radar names the specific values that disagree. They're
 complementary: the graph for structure, Concord for the exact conflicting lines.
 
-> **Honest caveat — completeness queries.** These numbers are for *targeted* questions.
+> **Honest caveat (completeness queries).** These numbers are for *targeted* questions.
 > For "find **all** X" sweeps (e.g. "every GDPR commitment"), a small top-k with an
 > aggressive cutoff *under-retrieves*: it can return four near-identical clauses and
 > miss the scattered rest. That's a recall-vs-tokens trade, and it's exactly where a
@@ -83,7 +87,7 @@ diff:
 
 Either way, cost scales with the diff, not the corpus.
 
-## In CI — the leak guard + badge
+## In CI: the leak guard and badge
 
 Fail the build if a codename reaches a public file, and stamp a badge on your README:
 
@@ -97,8 +101,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - uses: linnetlabs/concord@v1     # the reusable action
-        with: { scope: public }
+      - run: pip install concord-ai && concord lint . --scope public
 ```
 
 ```bash
@@ -131,11 +134,11 @@ pip install concord-ai              # lint + exact find (no ML dependencies)
 pip install "concord-ai[embeddings]"  # + sentiment.ai embedder for semantic find / read
 ```
 
-Embeddings come from [sentiment.ai](https://github.com/BenWiseman/sentiment.ai) — its
-sibling package — so Concord inherits a local, auditable, provenance-tracked
-embedder (e5 on-device by default) rather than calling a hosted API. sentiment.ai is
-the **only** embedding backend: Concord never silently swaps in a different model,
-because that would make a result look the same while being incomparable.
+Embeddings come from [sentiment.ai](https://github.com/BenWiseman/sentiment.ai), which
+downloads a small e5 model (about 90 MB) and runs it locally on first use. No API key,
+and no data leaves your machine. sentiment.ai is the only embedding backend; Concord
+never silently swaps in a different model, since that would make a result look the same
+while being incomparable.
 
 ## Quickstart
 
@@ -143,7 +146,7 @@ because that would make a result look the same while being incomparable.
 concord init   .                           # scaffold rules.yaml + gitignore it and .concord/
 concord lint   .                           # fail CI if a banned term reaches a public file
 concord index  .                           # build the semantic index (self-ignored)
-concord find   "founding-free pricing"     # exact + semantic hits, cited to file:line
+concord find   "annual subscription pricing"  # exact + semantic hits, cited to file:line
 concord read   "what have we said about pricing?"   # retrieve the relevant passages
 concord radar  . --verify                  # find contradictions; --verify lets an LLM confirm + name the canonical value
 concord resolve .                          # walk confirmed contradictions and apply the fix (interactive; --apply = auto)
@@ -153,29 +156,29 @@ concord topics .                           # annotated topic map (browse; --samp
 concord ui     .                           # premium live explorer in your browser (search · topics · radar)
 ```
 
-## AI is optional — and it's *your* key
+## AI is optional, and it's *your* key
 
 Everything core is **free and deterministic**: lint, find, index, topics, radar candidates, report.
-The optional LLM steps — `radar --verify`, `resolve`, and naming topics in the explorer — call **your own
+The optional LLM steps (`radar --verify`, `resolve`, and naming topics in the explorer) call **your own
 API key** (you pay for usage), and the tool is explicit about it everywhere (a status pill, cost tooltips,
 CLI notes).
 
-- Set any of `ANTHROPIC_API_KEY` (preferred — the better judge), `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`,
+- Set any of `ANTHROPIC_API_KEY` (preferred, the better judge), `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`,
   `GROQ_API_KEY`, `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`, `GEMINI_API_KEY`. The explorer's ⚙ picks among
   the keys you actually have.
 - `CONCORD_NO_LLM=1` turns AI off entirely; `CONCORD_LLM=<provider>` forces one.
 - No key? Everything except verify / resolve / AI-naming still works.
 
-> **Your real ruleset stays private — enforced, not trusted.** `concord init` copies
+> **Your real ruleset stays private, enforced not trusted.** `concord init` copies
 > `rules.example.yaml` to `rules.yaml` and adds `rules.yaml`, `*.local.yaml`, and
 > `.concord/` to your repo's `.gitignore`. The built index writes its own
 > `.concord/.gitignore` too. A tool that prevents codename leaks must not leak the
-> codenames — so it makes them uncommittable for you.
+> codenames, so it makes them uncommittable for you.
 
-## Status
+## Status and links
 
-Early scaffold. `lint` works today (no ML required). Semantic `find` / `read` and the
-benchmark harness are in progress. See [`eval/README.md`](eval/README.md) for the
-benchmark design (seed-efficiency, stopping-strategy, token-efficiency).
+`init` and `lint` are stable with no ML dependency. The semantic features work and are
+tested, but are young, so treat them as beta. See [`eval/README.md`](eval/README.md)
+for the benchmarks and [the paper](paper/paper.md) for the design.
 
-MIT licensed. A Linnet Labs project.
+[GitHub](https://github.com/linnetlabs/concord) · MIT licensed · a [Linnet Labs](https://linnetlabs.org) project.

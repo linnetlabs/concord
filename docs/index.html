@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Concord — keep a sprawling repo telling one story</title>
-<meta name="description" content="Concord points your LLM at the exact passages that matter — cited to file:line — so it answers from your real docs instead of guessing, flags where they contradict themselves, and does it in ~190 tokens instead of 1.8M. Grounded, checkable AI for your repo. An open-source tool by Linnet Labs.">
+<title>Concord: keep a sprawling repo telling one story</title>
+<meta name="description" content="Concord points your LLM at the exact passages (cited to file:line) so it answers from your real docs instead of guessing, and flags where they contradict themselves, reading a few hundred tokens instead of the whole repo. Grounded, checkable AI for your repo. An open-source tool by Linnet Labs.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -168,7 +168,7 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
 <header class="hero"><div class="wrap">
   <span class="eyebrow">// grounded AI · cites every line</span>
   <h1>Keep a sprawling repo <span class="accent">telling one story.</span></h1>
-  <p class="lead">Concord points your LLM at the <b>exact passages that matter — cited to file:line</b> — so it answers from your real docs instead of guessing, flags where they quietly <b>contradict themselves</b>, and does it in ~190 tokens instead of 1.8M. <b>AI you can actually check.</b></p>
+  <p class="lead">Concord points your LLM at the <b>exact passages, cited to file:line</b>, so it answers from your real docs instead of guessing, and flags where they quietly <b>contradict themselves</b>, reading a few hundred tokens instead of the whole repo. <b>AI you can check.</b></p>
   <div class="cta-row">
     <a class="btn btn-primary" href="#install">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -178,7 +178,7 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
   </div>
 
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;align-items:center">
-    <span style="font-family:var(--mono);font-size:13px;color:var(--fg-2);border:1px solid var(--border);background:rgba(52,211,153,.05);border-radius:100px;padding:7px 14px"><b style="color:var(--accent);font-size:15px">≈190</b> tokens to answer, not <b style="color:var(--fg)">1.8M</b><span class="muted">*</span></span>
+    <span style="font-family:var(--mono);font-size:13px;color:var(--fg-2);border:1px solid var(--border);background:rgba(52,211,153,.05);border-radius:100px;padding:7px 14px"><b style="color:var(--accent);font-size:15px">a few hundred</b> tokens to answer, not the <b style="color:var(--fg)">whole repo</b><span class="muted">*</span></span>
     <span style="font-family:var(--mono);font-size:13px;color:var(--fg-2);border:1px solid var(--border);border-radius:100px;padding:7px 14px">every answer cited to <b style="color:var(--accent-2)">file:line</b></span>
   </div>
 
@@ -186,7 +186,7 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
   <div class="console" id="demo">
     <div class="console-bar">
       <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
-      <span class="path">project-bluebird/  ·  14,551 passages indexed</span>
+      <span class="path">demo · project-bluebird/  ·  14,551 passages indexed</span>
     </div>
     <div class="console-body">
       <div class="ask">
@@ -202,7 +202,7 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
       <div class="cards" id="cards"></div>
     </div>
   </div>
-  <p class="note" style="margin-top:14px"><span class="muted">*</span>≈190 tokens for a targeted question vs reading the whole repo, and it returns the verbatim lines — not a summary. Broad questions read more (up to ~9,000× fewer in the extreme). <span class="muted">Honest numbers, always.</span></p>
+  <p class="note" style="margin-top:14px"><span class="muted">*</span>A few hundred tokens for a targeted question vs reading the whole repo, returning the verbatim lines, not a summary. Broad questions read more. The numbers above are from the interactive demo.</p>
 </div></header>
 
 <section id="how"><div class="wrap">
@@ -213,17 +213,17 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
     <div class="feature">
       <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg></div>
       <h3>Answer your repo</h3>
-      <p>Ask in plain language; get the relevant passages cited to <span class="mono">file:line</span> — catching the paraphrase a <span class="mono">grep</span> misses, without reading whole files into context.</p>
+      <p>Ask in plain language; get the relevant passages cited to <span class="mono">file:line</span>, catching the paraphrase a <span class="mono">grep</span> misses, without reading whole files into context.</p>
     </div>
     <div class="feature">
       <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h11M8 12h11M8 18h11M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg></div>
       <h3>Spot contradictions</h3>
-      <p>Surface every place a fact is stated — a price, a policy, a product name — and flag where the statements <em>disagree</em>. The drift you'd never catch by hand.</p>
+      <p>Surface every place a fact is stated (a price, a policy, a product name) and flag where the statements <em>disagree</em>. The drift a manual review misses in a large repo.</p>
     </div>
     <div class="feature">
       <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <h3>Guard against leaks</h3>
-      <p>A deterministic lint that fails CI if an internal codename or a retired term reaches a public file. Recall‑complete on your list, zero token cost, runs on every commit.</p>
+      <p>A deterministic lint that fails CI if an internal codename or a retired term reaches a public file. Exact-match over your term list, zero token cost, runs on every commit.</p>
     </div>
   </div>
 </div></section>
@@ -243,8 +243,8 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
 
 <section style="padding-top:8px"><div class="wrap">
   <span class="kicker">Orientation</span>
-  <h2>A map of everything you've written.</h2>
-  <p class="section-lead">Concord clusters your prose into topics so you can see the shape of the corpus — and drill from theme to file to the exact passage.</p>
+  <h2>A map of your indexed content.</h2>
+  <p class="section-lead">Concord clusters your prose into topics so you can see the shape of the corpus, then drill from theme to file to the exact passage.</p>
   <div class="tmap">
     <div class="tile t-a"><small>// theme</small><span>Pricing &amp; billing</span><small>1,204 passages</small></div>
     <div class="col">
@@ -260,11 +260,11 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
 
 <section id="install" style="padding-top:8px"><div class="wrap">
   <span class="kicker">Install</span>
-  <h2>Two lines to a tidier repo.</h2>
+  <h2>Up and running in minutes.</h2>
   <p class="section-lead">Lint works with zero ML dependencies. Add the embeddings extra for semantic search and contradiction-finding.</p>
   <div class="install">
-    <div class="bar">terminal — bash</div>
-<pre><span class="c"># the deterministic leak-guard — no ML needed</span>
+    <div class="bar">terminal, bash</div>
+<pre><span class="c"># the deterministic leak-guard, no ML needed</span>
 pip install concord-ai
 concord <span class="b">init</span> .          <span class="c"># scaffold rules.yaml (gitignored) + .gitignore it</span>
 concord <span class="b">lint</span> .          <span class="c"># fail CI if a codename reaches a public file</span>
@@ -279,7 +279,7 @@ concord <span class="b">read</span> <span class="g">"what have we said about pri
 
 <footer><div class="wrap row">
   <div>
-    <div class="by">Concord — <a href="https://linnetlabs.org" target="_blank" rel="noopener">by Linnet&nbsp;Labs</a></div>
+    <div class="by">Concord, <a href="https://linnetlabs.org" target="_blank" rel="noopener">by Linnet&nbsp;Labs</a></div>
     <small>AI you can check · MIT licensed</small>
   </div>
   <small>Grounded in your repo, cited to file:line · embeddings via sentiment.ai</small>
@@ -298,8 +298,8 @@ const DATA = {
     {f:"legal/subprocessors.md:1", s:"0.83", t:'A current list of sub-processors is maintained and customers are notified before any change.'},
   ]},
   "Anywhere we leak the codename?": {used:0, lint:true, cards:[
-    {f:"web/landing/index.html:30", s:"LEAK", t:'&lt;h1&gt;Welcome to <mark>Project Bluebird</mark>&lt;/h1&gt; — internal codename in a public file.', warn:true},
-    {f:"docs/public/faq.md:14", s:"LEAK", t:'…the <mark>Project Bluebird</mark> beta program… — use the public product name.', warn:true},
+    {f:"web/landing/index.html:30", s:"LEAK", t:'&lt;h1&gt;Welcome to <mark>Project Bluebird</mark>&lt;/h1&gt; (internal codename in a public file).', warn:true},
+    {f:"docs/public/faq.md:14", s:"LEAK", t:'the <mark>Project Bluebird</mark> beta program (use the public product name).', warn:true},
   ]},
 };
 const FULL = 1803690;
@@ -309,7 +309,7 @@ const rq = document.getElementById('rq'), q = document.getElementById('q'), used
 function render(key){
   const d = DATA[key]; q.value = key; rq.textContent = d.lint ? 'lint · public scope' : key;
   used.textContent = d.used.toLocaleString();
-  full.textContent = d.lint ? '—' : FULL.toLocaleString();
+  full.textContent = d.lint ? 'n/a' : FULL.toLocaleString();
   cards.innerHTML = '';
   d.cards.forEach((c,i)=>{
     const el = document.createElement('div');

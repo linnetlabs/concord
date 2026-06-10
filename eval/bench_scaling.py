@@ -36,7 +36,6 @@ HOME = pathlib.Path.home()
 # (display_name, path, public?, load_existing_index?)
 REPOS = [
     ("roperators",        HOME / "roperators",  True,  False),
-    ("squawkbox",         HOME / "squawkbox",   True,  False),
     ("concord.ai",        HOME / "concord.ai",  True,  False),
     ("sentiment.ai",      HOME / "sentiment.ai", True, False),
 ]

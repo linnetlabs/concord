@@ -54,57 +54,35 @@ def run():
     norms = np.linalg.norm(vecs, axis=1, keepdims=True)
     matrix = vecs / (norms + 1e-9)
 
-    print("Running contradiction radar (threshold=0.60 for small corpus)...")
-    result = find_conflicts(passages, matrix, sim_threshold=0.60, neighbors=20, max_conflicts=200)
-    found = result["conflicts"]
-    print(f"  {result['value_passages']} value-bearing passages, {len(found)} candidates")
-
-    # Match candidates to ground truth
     def files_of(c):
         return {pathlib.Path(c["a"]["file"]).name, pathlib.Path(c["b"]["file"]).name}
 
-    hits = set()
-    for c in found:
-        cf = files_of(c)
-        for i, (_, _, gt_files) in enumerate(GROUND_TRUTH):
-            if cf == gt_files:
-                hits.add(i)
+    def evaluate(threshold):
+        found = find_conflicts(passages, matrix, sim_threshold=threshold,
+                               neighbors=20, max_conflicts=200)["conflicts"]
+        hits = {i for c in found for i, (_, _, gt) in enumerate(GROUND_TRUTH) if files_of(c) == gt}
+        tp, n = len(hits), len(found)
+        precision = tp / n if n else 0.0
+        recall = tp / N_TRUE_PAIRS
+        return {"threshold": threshold, "n_candidates": n, "tp": tp, "fp": n - tp,
+                "fn": N_TRUE_PAIRS - tp, "precision": round(precision, 4),
+                "recall": round(recall, 4)}
 
-    tp = len(hits)
-    fp = len(found) - tp
-    fn = N_TRUE_PAIRS - tp
-    precision = tp / (tp + fp) if (tp + fp) else 0
-    recall    = tp / N_TRUE_PAIRS
-
-    print("\n── Contradiction radar results ──")
-    print(f"  True pairs in ground truth : {N_TRUE_PAIRS:3d}")
-    print(f"  Candidates returned        : {len(found):3d}")
-    print(f"  True positives             : {tp:3d}")
-    print(f"  False positives            : {fp:3d}")
-    print(f"  False negatives            : {fn:3d}")
-    print(f"  Precision                  : {precision:.3f}")
-    print(f"  Recall                     : {recall:.3f}")
-    print(f"  F1                         : {2*precision*recall/(precision+recall+1e-9):.3f}")
-
-    print("\n── Missed pairs ──")
-    for i, (t, desc, files) in enumerate(GROUND_TRUTH):
-        if i not in hits:
-            print(f"  MISS [{t}] {desc} ({sorted(files)})")
-
-    print("\n── False positives ──")
-    for c in found:
-        cf = files_of(c)
-        is_tp = any(cf == gt_files for _, _, gt_files in GROUND_TRUTH)
-        if not is_tp:
-            print(f"  FP sim={c['sim']:.3f} clash={c['clash']} files={sorted(cf)}")
+    # 0.88 is the radar's production default; 0.60 is a relaxed setting appropriate
+    # for so small a corpus. We report both rather than tune the test to pass.
+    runs = {f"{th:.2f}": evaluate(th) for th in (0.88, 0.60)}
+    print("\n── Contradiction radar (Bluebird, file-pair recall) ──")
+    print(f"  ground-truth pairs: {N_TRUE_PAIRS}")
+    for th, r in runs.items():
+        print(f"  threshold {th}: {r['n_candidates']:3d} candidates  "
+              f"recall {r['recall']:.2f}  precision {r['precision']:.2f}")
 
     out = {
         "n_passages": len(passages), "n_files": len(list(CORPUS.glob("*.md"))),
-        "value_passages": result["value_passages"],
         "n_ground_truth_pairs": N_TRUE_PAIRS, "n_ground_truth_unique": N_TRUE_UNIQUE,
-        "n_candidates": len(found), "tp": tp, "fp": fp, "fn": fn,
-        "precision": round(precision, 4), "recall": round(recall, 4),
-        "f1": round(2*precision*recall/(precision+recall+1e-9), 4),
+        "production_threshold": 0.88, "by_threshold": runs,
+        "note": "File-pair recall on a controlled synthetic corpus authored to exercise "
+                "the radar; a smoke test, not an independent benchmark.",
     }
     out_path = pathlib.Path(__file__).parent / "results_contradictions.json"
     out_path.write_text(json.dumps(out, indent=2))

@@ -19,7 +19,7 @@ def test_report_renders_sections_and_branding():
 
 
 def test_report_uses_verdicts_when_present():
-    conflicts = [{"clash": ["n>=4", "n>=8"], "subject": ["climate"],
+    conflicts = [{"clash": ["n>=4", "n>=8"], "subject": ["respondents"],
                   "a": {"file": "a.md", "line": 1, "text": "n>=4", "values": ["n>=4"]},
                   "b": {"file": "b.md", "line": 1, "text": "n>=8", "values": ["n>=8"]}}]
     verdicts = [{"real": True, "canonical": "n >= 8", "change": "a", "why": "stricter"}]

@@ -74,6 +74,5 @@ def get_embedder(model: Optional[str] = None) -> Embedder:
         raise RuntimeError(
             "Concord's semantic features are powered by the sentiment.ai embedder.\n"
             "  pip install \"concord-ai[embeddings]\"\n"
-            "  (until sentimentai-py is published: pip install -e ../sentiment.ai/pypackage)\n"
             f"  import error: {e}"
         ) from e
