@@ -32,10 +32,10 @@ strings, comments and named constants in your code and config) and lets you:
   the repo."* Exact and semantic matches, cited to `file:line`, pulling only the
   relevant passages into context instead of whole files.
 
-Concord is **computed, not generated**. The lint is regex; the ranking is geometry;
-extraction and the contradiction radar are deterministic. A language model enters only
-as an *optional* pass to adjudicate flagged contradictions or synthesise retrieved
-passages, handed only what Concord selected.
+The core is **deterministic**: the lint is regex, the ranking is geometry, and
+extraction and the contradiction radar run without a model. A language model enters
+only as an *optional* pass to adjudicate flagged contradictions or synthesise
+retrieved passages, handed only what Concord selected.
 
 ## Why it exists
 

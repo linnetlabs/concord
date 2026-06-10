@@ -1,8 +1,8 @@
-"""Concord — keep a sprawling repo telling one story.
+"""Concord: keep a sprawling repo telling one story.
 
-Deterministic codename-leak lint + semantic retrieval over a repo's prose.
-The engine is computed, not generated: lint is regex, ranking is geometry,
-and a language model only ever sees the passages Concord already selected.
+Deterministic codename-leak lint plus semantic retrieval over a repo's prose.
+The core is deterministic: lint is regex, ranking is geometry, and a language
+model only ever sees the passages Concord already selected.
 """
 from __future__ import annotations
 
