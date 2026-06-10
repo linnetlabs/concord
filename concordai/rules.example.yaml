@@ -1,0 +1,51 @@
+# Concord example ruleset — GENERIC, safe to publish.
+# Copy to rules.yaml (gitignored) and replace with your real terms.
+#
+# A rule says: "this wording must not appear in a PUBLIC file."
+# Concord classifies every file as public | internal | data via `visibility`.
+
+# Which files count as publicly shippable. Globs are matched against repo-relative
+# POSIX paths. `internal` and `data` paths are exempt from the leak lint.
+visibility:
+  public:
+    - "web/**"
+    - "site/**"
+    - "docs/public/**"
+    - "*.html"
+    - "README.md"
+  internal:
+    - "strategy/**"
+    - "docs/internal/**"
+    - "notes/**"
+  data:
+    - "**/*.json"          # payloads/fixtures: data, not prose — skipped by lint
+
+# Banned wording. `match: exact` is a literal/regex string scan (recall-complete,
+# zero cost). `match: semantic` (todo) will also flag close paraphrases via the
+# embedding index. `anchors` seed the semantic channel for a concept.
+terms:
+  - id: codename-bluebird
+    match: regex
+    pattern: "Project[ -]?Bluebird"
+    reason: "Internal codename — never ship the codename, use the public product name."
+    severity: error
+
+  - id: retired-name-falcon
+    match: exact
+    pattern: "FalconView"
+    reason: "Retired product name; current name is 'Atlas'."
+    severity: error
+
+  - id: retired-price
+    match: regex
+    pattern: "\\$1,?800"
+    reason: "Retired price point; current floor is documented in pricing."
+    severity: error
+
+  - id: internal-metric-jargon
+    match: semantic        # reserved for the semantic channel
+    anchors:
+      - "the churn-risk propensity score"
+      - "internal attrition-likelihood index"
+    reason: "Internal metric vocabulary; use plain customer-facing language."
+    severity: warn

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concord Explorer — __REPO__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+:root{
+  --bg:#080d18;--surface:#111a2c;--surface-2:#0e1626;--border:#1f2c44;--border-soft:#172238;
+  --fg:#eaf1fb;--fg-2:#b7c4d8;--muted:#7f8ca3;
+  --accent:#34d399;--accent-dim:#0e3b30;--accent-2:#6aa6ff;--warn:#fbbf24;--danger:#f87171;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;min-height:100vh;
+  background-image:radial-gradient(900px 440px at 82% -10%,rgba(52,211,153,.08),transparent 60%),
+    radial-gradient(760px 460px at 6% 2%,rgba(106,166,255,.06),transparent 55%)}
+a{color:inherit;text-decoration:none}.mono{font-family:var(--mono)}.muted{color:var(--muted)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+.kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin:4px 2px 7px}
+.hsec{font-size:clamp(21px,2.7vw,28px);letter-spacing:-.022em;font-weight:700;margin:0 0 20px;line-height:1.1}
+.accent{background:linear-gradient(90deg,#34d399,#6aa6ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.top{position:sticky;top:0;z-index:30;backdrop-filter:blur(10px);background:rgba(8,13,24,.78);border-bottom:1px solid var(--border-soft)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;height:58px;gap:16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:-.01em}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px rgba(52,211,153,.7)}
+.brand small{font-weight:500;color:var(--muted);font-size:12px}.brand small a{color:var(--accent)}
+.repo{font-family:var(--mono);font-size:12.5px;color:var(--muted)}.repo b{color:var(--fg-2)}
+.aip{font-family:var(--mono);font-size:11px;border:1px solid var(--border);border-radius:100px;padding:2px 9px;margin-left:9px;cursor:help}
+.aip.on{color:var(--accent);border-color:var(--accent-dim);background:rgba(52,211,153,.06)}.aip.off{color:var(--muted)}
+.gear{background:none;border:0;color:var(--muted);cursor:pointer;font-size:15px;margin-left:5px;padding:2px 4px;line-height:1}.gear:hover{color:var(--fg)}
+.settings{position:fixed;top:60px;right:22px;z-index:60;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px 17px;width:300px;box-shadow:0 26px 64px -22px rgba(0,0,0,.75)}
+.st-h{font-size:13.5px;font-weight:600;margin-bottom:3px}.st-sub{font-size:11px;color:var(--muted);margin-bottom:8px}
+.prov{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:13.5px;cursor:pointer;border-top:1px solid var(--border-soft)}
+.prov input{accent-color:var(--accent)}.prov .m{color:var(--muted);font-family:var(--mono);font-size:10.5px;margin-left:auto}
+.tabs{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:3px}
+.tab{font-size:13.5px;font-weight:600;color:var(--fg-2);padding:7px 15px;border-radius:7px;cursor:pointer;border:0;background:transparent;font-family:var(--sans)}
+.tab.on{background:var(--accent);color:#06241b}
+.seg{display:inline-flex;gap:3px;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:3px}
+.seg button{font-size:12.5px;font-weight:600;color:var(--fg-2);padding:6px 13px;border:0;border-radius:6px;background:transparent;cursor:pointer;font-family:var(--sans)}
+.seg button.on{background:var(--accent);color:#06241b}
+main{padding:28px 0 60px}.hide{display:none}
+.ask{display:flex;gap:11px;align-items:center;background:linear-gradient(180deg,#0e1728,#0b1120);border:1px solid var(--border);border-radius:15px;padding:16px 18px;transition:.15s;box-shadow:0 24px 60px -32px rgba(0,0,0,.78)}
+.ask:focus-within{border-color:var(--accent);box-shadow:0 24px 60px -32px rgba(0,0,0,.78),0 0 0 3px rgba(52,211,153,.10)}
+.ask svg{flex:none;color:var(--muted)}.ask input{flex:1;background:0;border:0;outline:0;color:var(--fg);font-size:16px;font-family:var(--sans)}
+.ask input::placeholder{color:#5d6b84}
+.row{display:flex;align-items:center;gap:14px;margin:12px 2px;flex-wrap:wrap}
+.toggle{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--fg-2);cursor:pointer}.toggle input{accent-color:var(--accent)}
+.also{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;color:var(--fg-2);padding:9px 13px;font-family:var(--sans);font-size:13.5px;outline:0;resize:vertical;height:38px}
+.btn{font-size:12.5px;font-weight:600;color:var(--fg-2);border:1px solid var(--border);background:rgba(255,255,255,.02);border-radius:9px;padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);transition:.16s}
+.btn:hover{border-color:var(--accent);color:var(--fg);transform:translateY(-1px)}
+.btn-ai{color:var(--accent);border-color:var(--accent-dim);background:rgba(52,211,153,.06)}
+.btn-ai:hover{box-shadow:0 6px 16px rgba(52,211,153,.15)}
+.tok{font-family:var(--mono);font-size:13px;border:1px solid var(--accent-dim);background:rgba(52,211,153,.06);border-radius:100px;padding:6px 13px;white-space:nowrap}
+.tok b{color:var(--accent);font-size:15px}.tok s{color:var(--muted)}.tok .tcut{color:var(--accent-2);font-weight:600;margin-left:4px}
+.cards{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.card{border:1px solid var(--border);border-left:3px solid var(--accent-2);border-radius:11px;padding:12px 16px;background:var(--surface);animation:rise .35s ease both}
+.card.exact{border-left-color:var(--accent)}
+.ctop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.fl{font-family:var(--mono);font-size:12.5px;color:#8fd9be;word-break:break-all}
+a.fl:hover{text-decoration:underline}
+.badge{font-family:var(--mono);font-size:11px;font-weight:700;color:#06241b;background:var(--accent-2);padding:2px 8px;border-radius:6px}
+.badge.exact{background:var(--accent)}.chip{font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:100px;padding:2px 9px;margin-right:6px}
+.snip{color:var(--fg-2);font-size:14px;line-height:1.55}
+.empty{color:#6b7a93;text-align:center;padding:46px 0;font-size:14.5px}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.spin{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:-3px}@keyframes sp{to{transform:rotate(360deg)}}
+/* topics */
+.tgrid{display:grid;grid-template-columns:1fr 360px;gap:16px}@media(max-width:860px){.tgrid{grid-template-columns:1fr}}
+#tree{height:480px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2)}
+.inspect{border:1px solid var(--border);border-radius:14px;background:var(--surface-2);padding:16px;max-height:480px;overflow:auto}
+.inspect h4{margin:0 0 4px;font-size:14px}.inspect .sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:12px}
+.ipass{border-top:1px solid var(--border-soft);padding:10px 0}.ipass .fl{margin-bottom:4px}
+/* radar */
+.rhead{display:flex;align-items:baseline;gap:12px;margin:6px 2px 4px}
+.rhead b{font-size:24px;background:linear-gradient(90deg,#34d399,#6aa6ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.conflict{border:1px solid #3a2530;background:linear-gradient(180deg,#16121c,#120e16);border-radius:12px;padding:13px 15px;margin-bottom:10px;animation:rise .35s ease both}
+.conflict .tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--danger);border:1px solid #4a2530;background:rgba(248,113,113,.07);padding:3px 9px;border-radius:100px}
+.conflict .subj{font-size:11px;color:var(--muted);margin-left:8px}
+.conflict .tag.ok{color:var(--accent);border-color:var(--accent-dim);background:rgba(52,211,153,.08)}
+.canon{color:var(--accent-2);font-family:var(--mono);font-size:12.5px;margin-top:9px}.canon b{color:var(--warn)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px}@media(max-width:620px){.pair{grid-template-columns:1fr}}
+.pair .c{border:1px solid var(--border-soft);border-radius:9px;padding:10px 12px;background:rgba(255,255,255,.02)}
+.pair .c .snip{font-size:13px;margin-top:5px}
+.clashv{color:var(--warn);font-weight:700;font-family:var(--mono)}
+.hist{margin-top:10px}.hist .h{font-family:var(--mono);font-size:12px;color:var(--fg-2);border-top:1px solid var(--border-soft);padding:7px 0;display:flex;gap:10px}
+.hist .h .d{color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap">
+  <a class="brand" href="#"><span class="dot"></span>Concord <small>explorer · <a href="https://linnetlabs.org" target="_blank" rel="noopener">by Linnet Labs</a></small></a>
+  <span class="repo"><b>__REPO__</b> · __N__ passages<span class="aip off" id="aistatus" title="Optional AI features use YOUR API key — you pay for usage.">AI …</span><button class="gear" id="gear" title="AI provider settings">⚙</button></span>
+  <div class="tabs">
+    <button class="tab on" data-t="search">Search</button>
+    <button class="tab" data-t="topics">Topics</button>
+    <button class="tab" data-t="radar">Radar</button>
+    <button class="tab" data-t="activity">Activity</button>
+  </div>
+</div></div>
+
+<div class="settings hide" id="settings">
+  <div class="st-h">AI provider</div>
+  <div class="st-sub">Optional (verify · name topics) — your key, you pay. Auto picks the best available.</div>
+  <div id="provlist"></div>
+</div>
+
+<main class="wrap">
+  <section id="v-search">
+    <div class="kicker">Ask your repo</div>
+    <h2 class="hsec">Find the exact lines — <span class="accent">cited to file:line</span></h2>
+    <div class="ask">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg>
+      <input id="q" placeholder="Ask your repo — e.g. what have we said about pricing?" autocomplete="off">
+    </div>
+    <div class="row">
+      <label class="toggle"><input type="checkbox" id="facets"> tag by facet</label>
+      <button class="btn" id="copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>copy link</button>
+      <span class="muted" id="count" style="font-size:13px"></span>
+    </div>
+    <textarea class="also" id="also" placeholder="extra phrasings (one per line) — recovers passages a single wording misses"></textarea>
+    <div class="cards" id="cards"></div>
+    <div class="empty" id="empty">Ask a question to retrieve the exact passages — cited to file:line.</div>
+  </section>
+
+  <section id="v-topics" class="hide">
+    <div class="kicker">Orientation</div>
+    <h2 class="hsec">A map of <span class="accent">everything you've written</span></h2>
+    <div class="row"><span class="muted" id="tnote">Clustering passages… first load can take a few seconds.</span><button class="btn btn-ai" id="namebtn" style="margin-left:auto" title="Names topics with AI — calls your API key (you pay).">✦ Name with AI</button></div>
+    <div class="tgrid">
+      <div id="tree"></div>
+      <div class="inspect" id="inspect"><div class="empty" style="padding:24px 0">Click a file in the map to read its passages.</div></div>
+    </div>
+  </section>
+
+  <section id="v-radar" class="hide">
+    <div class="kicker">Consistency</div>
+    <h2 class="hsec">Contradiction radar</h2>
+    <div class="rhead"><b id="rcount">…</b><span class="muted" id="rsub"></span><button class="btn btn-ai" id="vbtn" style="margin-left:auto" title="LLM-judges each candidate — calls your API key (you pay).">✦ Verify with AI</button></div>
+    <p class="muted" style="margin:2px 2px 14px;font-size:13.5px">Where your docs state the <span style="color:var(--fg-2)">same thing two different ways</span> — likely contradictions (same topic, same kind of value, different number). The engine flags them; you (or your LLM) confirm.</p>
+    <div id="conflicts"><div class="empty"><span class="spin"></span> scanning for contradictions…</div></div>
+  </section>
+  <section id="v-activity" class="hide">
+    <div class="kicker">Where the effort goes</div>
+    <h2 class="hsec">Activity &amp; <span class="accent">collision</span> heatmap</h2>
+    <p class="muted" id="anote" style="margin:2px 2px 14px;font-size:13.5px">Tile size = lines changed (effort) · colour = how many authors touched it (green → red as more people edit the same file).</p>
+    <div class="seg" style="margin:0 2px 12px"><button class="on" id="m-coll">Collision risk</button><button id="m-act">Dev activity</button></div>
+    <div id="atree" style="height:480px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2)"></div>
+    <div id="acoll" style="margin-top:14px"></div>
+  </section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const GHBASE="__GHBASE__";
+const fl=(file,line)=>GHBASE?`<a class="fl" href="${GHBASE}/${file}#L${line}" target="_blank" rel="noopener">${esc(file)}:${line}</a>`:`<span class="fl">${esc(file)}:${line}</span>`;
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
+  ['search','topics','radar','activity'].forEach(t=>$('#v-'+t).classList.toggle('hide',t!==b.dataset.t));
+  if(b.dataset.t==='topics'&&!window._tl){window._tl=1;loadTopics();}
+  if(b.dataset.t==='radar'&&!window._rl){window._rl=1;loadRadar();}
+  if(b.dataset.t==='activity'&&!window._al){window._al=1;loadActivity();}
+});
+
+/* search */
+let timer;
+async function search(){
+  const q=$('#q').value.trim();
+  const also=$('#also').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!q){$('#cards').innerHTML='';$('#empty').classList.remove('hide');$('#count').textContent='';return;}
+  $('#empty').classList.add('hide');$('#cards').innerHTML='<div class="empty"><span class="spin"></span></div>';
+  const p=new URLSearchParams();p.set('q',q);also.forEach(a=>p.append('also',a));if($('#facets').checked)p.set('facets','1');
+  const r=await fetch('/api/search?'+p).then(r=>r.json());
+  const kfmt=n=>n>=1e6?(n/1e6).toFixed(n>=1e7?0:1)+'M':n>=1e3?(n/1e3).toFixed(n>=1e4?0:1)+'k':String(n);
+  if(r.corpus_tokens&&r.read_tokens!=null){
+    const cut=Math.max(0,(1-r.read_tokens/r.corpus_tokens)*100);
+    $('#count').innerHTML=`<span class="tok"><span class="muted">read</span> <b>~${kfmt(r.read_tokens)}</b> <span class="muted">tokens, not</span> <s>~${kfmt(r.corpus_tokens)}</s> <span class="tcut">${cut.toFixed(cut>=99.9?2:1)}% less to read</span></span>`
+      +` <span class="muted" style="margin-left:8px">· ${(r.hits||[]).length} passages, cited to file:line</span>`;
+  } else {
+    $('#count').textContent=(r.hits||[]).length+' passages · read top-down, stop when relevance fades';
+  }
+  if(!r.hits||!r.hits.length){$('#cards').innerHTML='<div class="empty">No matches'+(r.error?' (error)':'')+'.</div>';return;}
+  $('#cards').innerHTML=r.hits.map((h,i)=>`<div class="card ${h.type}" style="animation-delay:${i*40}ms">
+    <div class="ctop">${fl(h.file,h.line)}<span>${h.facet?`<span class="chip">${esc(h.facet)}</span>`:''}<span class="badge ${h.type}">${h.type==='exact'?'=':h.score}</span></span></div>
+    <div class="snip">${esc(h.text)}</div></div>`).join('');
+}
+$('#q').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(search,260)});
+$('#q').addEventListener('keydown',e=>{if(e.key==='Enter')search()});
+$('#facets').addEventListener('change',search);
+$('#also').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(search,400)});
+$('#copy').onclick=()=>{const p=new URLSearchParams();p.set('q',$('#q').value);$('#also').value.split('\n').map(s=>s.trim()).filter(Boolean).forEach(a=>p.append('also',a));
+  navigator.clipboard.writeText(location.origin+'/?'+p).then(()=>{$('#copy').lastChild.textContent='copied!';setTimeout(()=>$('#copy').lastChild.textContent='copy link',1400)})};
+const dq=new URLSearchParams(location.search);
+if(dq.get('q')){$('#q').value=dq.get('q');$('#also').value=dq.getAll('also').join('\n');search();}
+if(dq.get('tab')){const b=[...document.querySelectorAll('.tab')].find(x=>x.dataset.t===dq.get('tab'));if(b)b.click();}
+
+/* topics */
+async function loadTopics(useLLM){
+  const r=await fetch('/api/topics?k=28&s=6'+(useLLM?'&llm=1':'')).then(r=>r.json());const N=r.nodes;
+  $('#tnote').textContent=`${N.filter(n=>n.id[0]==='L').length} topics${r.llm?' · AI-named':' · keyword labels'} · click to zoom, click a file to inspect`;
+  if(r.llm)$('#namebtn').textContent='✓ AI-named';
+  Plotly.newPlot('tree',[{type:'treemap',ids:N.map(n=>n.id),labels:N.map(n=>n.label),parents:N.map(n=>n.parent),values:N.map(n=>n.value),
+    branchvalues:'remainder',maxdepth:2,tiling:{pad:2},marker:{colorscale:[[0,'#11283f'],[.5,'#16324d'],[1,'#1f6feb']],line:{width:1,color:'#0a0f1c'}},
+    hovertemplate:'<b>%{label}</b><br>%{value} passages<extra></extra>',textfont:{family:'JetBrains Mono',size:12,color:'#eaf1fb'}}],
+    {margin:{t:6,l:6,r:6,b:6},paper_bgcolor:'rgba(0,0,0,0)',font:{color:'#eaf1fb'}},{displayModeBar:false,responsive:true});
+  document.getElementById('tree').on('plotly_click',ev=>{const n=N.find(x=>x.id===(ev.points[0].id||''));if(n&&n.file)inspect(n.leaf,n.file)});
+}
+async function inspect(leaf,file){
+  $('#inspect').innerHTML='<div class="empty" style="padding:24px 0"><span class="spin"></span></div>';
+  const r=await fetch('/api/passages?leaf='+leaf+'&file='+encodeURIComponent(file)).then(r=>r.json());
+  $('#inspect').innerHTML=`<h4>${esc(file.split('/').pop())}</h4><div class="sub">${esc(file)} · ${r.passages.length} passages</div>`+
+    r.passages.map(p=>`<div class="ipass">${fl(p.file,p.line)}<div class="snip">${esc(p.text)}</div></div>`).join('');
+}
+
+/* radar */
+function hl(text,clash){let t=esc(text);clash.forEach(v=>{const e=v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');t=t.replace(new RegExp(e.replace('$','\\$'),'gi'),m=>`<span class="clashv">${m}</span>`)});return t}
+let RADAR=[];
+const WARN_SVG='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 8v5M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linejoin="round"/></svg>';
+function cardHTML(c,i,d){
+  if(d && !d.real) return '';
+  const ok = d && d.real;
+  const tag = ok
+    ? `<span class="tag ok">✓ confirmed · ${c.clash.map(esc).join(' vs ')}</span>`
+    : `<span class="tag">${WARN_SVG} contradiction · ${c.clash.map(esc).join(' vs ')}</span>`;
+  const canon = (ok && d.canonical) ? `<div class="canon">canonical: <b>${esc(d.canonical)}</b> — ${esc(d.why||'')}</div>` : '';
+  return `<div class="conflict" style="animation-delay:${i*30}ms">${tag}<span class="subj">${esc((c.subject||[]).join(' · '))}</span>${canon}
+    <div class="pair"><div class="c">${fl(c.a.file,c.a.line)}<div class="snip">${hl(c.a.text,c.clash)}</div></div>
+      <div class="c">${fl(c.b.file,c.b.line)}<div class="snip">${hl(c.b.text,c.clash)}</div></div></div>
+    <div style="margin-top:9px"><button class="btn" onclick="hist(this,'${esc(c.clash[0]||'').replace(/'/g,"")}')">git history of ${esc(c.clash[0]||'')}</button><div class="hist"></div></div></div>`;
+}
+function renderRadar(verdicts){
+  const items=RADAR.map((c,i)=>cardHTML(c,i,verdicts?verdicts[i]:null)).filter(Boolean);
+  $('#conflicts').innerHTML=items.length?items.join(''):'<div class="empty">No contradictions found. ✅</div>';
+}
+async function loadRadar(){
+  const r=await fetch('/api/radar').then(r=>r.json()); RADAR=r.conflicts;
+  $('#rcount').textContent=r.conflicts.length+' potential contradiction'+(r.conflicts.length===1?'':'s');
+  $('#rsub').textContent=`found across ${r.value_passages} passages with hard values`;
+  renderRadar(null);
+}
+async function verifyRadar(){
+  const b=$('#vbtn'); b.textContent='verifying…';
+  const r=await fetch('/api/verify').then(r=>r.json());
+  if(!r.verdicts){b.textContent='needs an API key'; return;}
+  const real=r.verdicts.filter(v=>v&&v.real).length;
+  $('#rcount').textContent=real+' confirmed contradiction'+(real===1?'':'s');
+  $('#rsub').textContent=`of ${r.verdicts.length} candidates · LLM-verified`;
+  renderRadar(r.verdicts); b.textContent='✓ verified';
+}
+$('#vbtn').onclick=verifyRadar;
+let ATREE=[];
+function renderActivity(mode){
+  const N=ATREE; if(!N.length)return;
+  const coll=mode!=='activity';
+  const leafC=N.filter(n=>n.leaf).map(n=>n.commits);
+  const cmax=coll?4:Math.max(4,...(leafC.length?leafC:[4]));
+  Plotly.newPlot('atree',[{type:'treemap',ids:N.map(n=>n.id),labels:N.map(n=>n.label),parents:N.map(n=>n.parent),
+    values:N.map(n=>n.churn),branchvalues:'total',maxdepth:3,tiling:{pad:2},
+    marker:{colors:N.map(n=>coll?n.authors:n.commits),colorscale:[[0,'#0f9d58'],[0.5,'#fbbf24'],[1,'#f87171']],cmin:1,cmax:cmax,showscale:false,line:{width:1,color:'#0a0f1c'}},
+    customdata:N.map(n=>[n.commits,n.authors]),
+    hovertemplate:'<b>%{label}</b><br>%{value} lines · %{customdata[0]} commits · %{customdata[1]} author(s)<extra></extra>',
+    textfont:{family:'JetBrains Mono',size:11,color:'#eaf1fb'}}],
+    {margin:{t:6,l:6,r:6,b:6},paper_bgcolor:'rgba(0,0,0,0)',font:{color:'#eaf1fb'}},{displayModeBar:false,responsive:true});
+  $('#anote').textContent=coll
+    ?'Tile size = lines changed · colour = how many authors touched it (green → red as more people edit the same file).'
+    :'Tile size = lines changed · colour = commit frequency (green → red the more often a file is changed).';
+}
+function setMode(m){document.getElementById('m-coll').classList.toggle('on',m==='collision');document.getElementById('m-act').classList.toggle('on',m==='activity');renderActivity(m);}
+async function loadActivity(){
+  const r=await fetch('/api/activity').then(r=>r.json());ATREE=r.tree||[];
+  if(!ATREE.length){$('#atree').innerHTML='<div class="empty" style="padding:48px">No git history found in this repo.</div>';return;}
+  renderActivity('collision');
+  document.getElementById('m-coll').onclick=()=>setMode('collision');
+  document.getElementById('m-act').onclick=()=>setMode('activity');
+  $('#acoll').innerHTML=r.collisions?`<div class="conflict"><span class="tag">collision risk · ${r.collisions} file(s) touched by 2+ authors</span></div>`
+    :'<div class="muted" style="font-size:13px;padding:6px 2px">No collisions in window — single author or no concurrent edits.</div>';
+}
+$('#namebtn').onclick=()=>{if($('#namebtn').disabled)return;$('#namebtn').textContent='naming… (your key)';loadTopics(true);};
+// AI provider status + selector — optional AI bills the USER's key
+function applyLLM(s){
+  const el=$('#aistatus'), on=s.available;
+  el.className='aip '+(on?'on':'off');
+  el.textContent=on?('AI: '+s.model):(s.disabled?'AI off':'AI · no key');
+  el.title=on?('Optional features call YOUR '+s.provider+' API key — you pay. Click ⚙ to switch provider.')
+            :'AI features off. Search, topics, lint and radar stay free.';
+  ['vbtn','namebtn'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=!on;b.style.opacity=on?1:.45;}});
+}
+function renderSettings(s){
+  const opts=[{name:'auto',label:'Auto (best available)',model:''}].concat(s.providers||[],[{name:'off',label:'Off — deterministic, free',model:''}]);
+  const cur=s.disabled?'off':(s.provider||'auto');
+  let html=opts.map(p=>`<label class="prov"><input type="radio" name="prov" value="${p.name}" ${p.name===cur?'checked':''}><span>${esc(p.label)}</span><span class="m">${esc(p.model||'')}</span></label>`).join('');
+  if(!(s.providers&&s.providers.length)) html+='<div class="st-sub" style="margin-top:9px">No keys in env. Set one of: ANTHROPIC_API_KEY · OPENAI_API_KEY · DEEPSEEK_API_KEY · GROQ_API_KEY · MISTRAL_API_KEY · OPENROUTER_API_KEY · GEMINI_API_KEY</div>';
+  $('#provlist').innerHTML=html;
+  $('#provlist').querySelectorAll('input').forEach(i=>i.onchange=()=>setProvider(i.value));
+}
+async function setProvider(name){const s=await fetch('/api/llm/set?provider='+encodeURIComponent(name)).then(r=>r.json());applyLLM(s);renderSettings(s);}
+$('#gear').onclick=e=>{e.stopPropagation();$('#settings').classList.toggle('hide');};
+document.addEventListener('click',e=>{if(!$('#settings').classList.contains('hide')&&!$('#settings').contains(e.target)&&e.target!==$('#gear'))$('#settings').classList.add('hide');});
+fetch('/api/llm').then(r=>r.json()).then(s=>{applyLLM(s);renderSettings(s);}).catch(()=>{});
+async function hist(btn,term){
+  const box=btn.nextElementSibling;box.innerHTML='<div class="h"><span class="spin"></span></div>';
+  const r=await fetch('/api/drift?term='+encodeURIComponent(term)).then(r=>r.json());
+  box.innerHTML=r.commits.length?r.commits.map(c=>`<div class="h"><span class="d">${esc(c.date)}</span><span class="mono">${esc(c.hash)}</span><span>${esc(c.subject)}</span></div>`).join(''):'<div class="h muted">no commits touch this value</div>';
+}
+</script>
+</body>
+</html>

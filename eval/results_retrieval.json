@@ -1,0 +1,45 @@
+{
+  "n_queries": 15,
+  "n_passages_bigrepo": 24416,
+  "embed_ms_per_query": 312.8,
+  "stopping_strategies": {
+    "fixed5": {
+      "mean": 5.0,
+      "median": 5.0,
+      "p25": 5.0,
+      "p75": 5.0,
+      "min": 5,
+      "max": 5
+    },
+    "fixed10": {
+      "mean": 10.0,
+      "median": 10.0,
+      "p25": 10.0,
+      "p75": 10.0,
+      "min": 10,
+      "max": 10
+    },
+    "elbow": {
+      "mean": 16275.3,
+      "median": 24409.0,
+      "p25": 3.0,
+      "p75": 24414.0,
+      "min": 1,
+      "max": 24415
+    },
+    "thresh": {
+      "mean": 24416.0,
+      "median": 24416.0,
+      "p25": 24416.0,
+      "p75": 24416.0,
+      "min": 24416,
+      "max": 24416
+    }
+  },
+  "bluebird_recall": {
+    "fixed5": 0.9375,
+    "fixed10": 1.0,
+    "elbow": 0.875,
+    "thresh": 1.0
+  }
+}

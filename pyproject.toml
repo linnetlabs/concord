@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "concord-ai"
+version = "0.1.0"
+description = "Keep a sprawling repo telling one story: deterministic codename-leak lint + semantic retrieval over a repo's prose."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Linnet Labs" }]
+requires-python = ">=3.9"
+keywords = ["lint", "documentation", "retrieval", "consistency", "codename", "leak"]
+
+# Core install is dependency-light on purpose: `lint` and exact `find` need no ML.
+dependencies = [
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+# Semantic find / read. The embedder is sentiment.ai v2 — the single backend, no fallback.
+embeddings = [
+    "numpy>=1.21",
+    "sentimentai-py>=2.0.0",
+    "scikit-learn>=1.0",
+]
+# dev/CI: deterministic fake embedders, so no sentimentai-py needed — CI stays green.
+dev = ["pytest>=7", "numpy>=1.21", "scikit-learn>=1.0"]
+
+[project.scripts]
+concord = "concordai.cli:main"
+
+[tool.setuptools]
+packages = ["concordai"]
+
+[tool.setuptools.package-data]
+concordai = ["rules.example.yaml", "explorer.html"]

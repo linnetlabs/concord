@@ -1,0 +1,20 @@
+name: Concord leak guard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Fails the build if a banned term (your rules.yaml) reaches a public file.
+# In another repo, replace `uses: ./` with `uses: linnetlabs/concord@v1`.
+jobs:
+  leak-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: ./
+        with:
+          scope: public

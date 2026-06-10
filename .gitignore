@@ -1,0 +1,29 @@
+# --- Concord: ruleset is PRIVATE, engine is PUBLIC ---------------------------
+# Real banned-lexicon / codenames must NEVER enter version control.
+# Only the generic *.example.yaml ships. A tool that prevents codename leaks
+# must not itself leak the codenames.
+rules.yaml
+rules.local.yaml
+*.local.yaml
+.concord/            # built indexes, embeddings cache
+.concord.db
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# R
+.Rproj.user
+.Rhistory
+.RData
+*.Rcheck/
+
+# Streamlit / misc
+.streamlit/secrets.toml
+.DS_Store

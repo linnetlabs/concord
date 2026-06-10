@@ -1,0 +1,71 @@
+{
+  "fixed_k": 10,
+  "n_queries": 8,
+  "repos": [
+    {
+      "repo": "roperators",
+      "public": true,
+      "n_passages": 100,
+      "corpus_tokens": 2948,
+      "avg_passage_tokens": 29.5,
+      "read_tokens_fixed10": 293.6,
+      "reduction_fixed10_pct": 90.04,
+      "read_tokens_elbow": 2937.0,
+      "mean_elbow_k": 98.9,
+      "reduction_elbow_pct": 0.373,
+      "scan_ms_per_query": 0.16
+    },
+    {
+      "repo": "squawkbox",
+      "public": true,
+      "n_passages": 108,
+      "corpus_tokens": 4775,
+      "avg_passage_tokens": 44.2,
+      "read_tokens_fixed10": 309.0,
+      "reduction_fixed10_pct": 93.529,
+      "read_tokens_elbow": 2387.6,
+      "mean_elbow_k": 54.9,
+      "reduction_elbow_pct": 49.997,
+      "scan_ms_per_query": 0.01
+    },
+    {
+      "repo": "concord.ai",
+      "public": true,
+      "n_passages": 270,
+      "corpus_tokens": 22352,
+      "avg_passage_tokens": 82.8,
+      "read_tokens_fixed10": 4568.2,
+      "reduction_fixed10_pct": 79.562,
+      "read_tokens_elbow": 13933.0,
+      "mean_elbow_k": 167.0,
+      "reduction_elbow_pct": 37.666,
+      "scan_ms_per_query": 0.18
+    },
+    {
+      "repo": "sentiment.ai",
+      "public": true,
+      "n_passages": 3565,
+      "corpus_tokens": 2299635,
+      "avg_passage_tokens": 645.1,
+      "read_tokens_fixed10": 138.0,
+      "reduction_fixed10_pct": 99.994,
+      "read_tokens_elbow": 1149830.2,
+      "mean_elbow_k": 1782.6,
+      "reduction_elbow_pct": 49.999,
+      "scan_ms_per_query": 0.28
+    },
+    {
+      "repo": "ProdRepo (priv.)",
+      "public": false,
+      "n_passages": 24416,
+      "corpus_tokens": 3139453,
+      "avg_passage_tokens": 128.6,
+      "read_tokens_fixed10": 270.1,
+      "reduction_fixed10_pct": 99.991,
+      "read_tokens_elbow": 2746980.9,
+      "mean_elbow_k": 21360.5,
+      "reduction_elbow_pct": 12.501,
+      "scan_ms_per_query": 3.3
+    }
+  ]
+}

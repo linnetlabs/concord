@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concord — keep a sprawling repo telling one story</title>
+<meta name="description" content="Concord points your LLM at the exact passages that matter — cited to file:line — so it answers from your real docs instead of guessing, flags where they contradict themselves, and does it in ~190 tokens instead of 1.8M. Grounded, checkable AI for your repo. An open-source tool by Linnet Labs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080d18; --bg-2:#0b1120; --surface:#111a2c; --surface-2:#0e1626;
+  --border:#1f2c44; --border-soft:#172238;
+  --fg:#eaf1fb; --fg-2:#b7c4d8; --muted:#7f8ca3;
+  --accent:#34d399; --accent-dim:#0e3b30; --accent-2:#6aa6ff; --danger:#f87171; --warn:#fbbf24;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --radius:14px; --maxw:1080px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--fg); font-family:var(--sans);
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(900px 480px at 78% -8%, rgba(52,211,153,.10), transparent 60%),
+    radial-gradient(800px 520px at 8% 4%, rgba(106,166,255,.08), transparent 55%);
+}
+a{color:inherit; text-decoration:none}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+
+/* nav */
+nav{position:sticky; top:0; z-index:50; backdrop-filter:blur(10px);
+  background:rgba(8,13,24,.72); border-bottom:1px solid var(--border-soft)}
+nav .wrap{display:flex; align-items:center; justify-content:space-between; height:62px}
+.brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-.01em}
+.brand .dot{width:11px; height:11px; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 14px rgba(52,211,153,.7)}
+.brand small{font-weight:500; color:var(--muted); font-size:12.5px; margin-left:2px}
+.nav-links{display:flex; gap:26px; align-items:center; font-size:14px; color:var(--fg-2)}
+.nav-links a:hover{color:var(--fg)}
+.btn{display:inline-flex; align-items:center; gap:8px; font-weight:600; font-size:14px;
+  padding:10px 16px; border-radius:10px; cursor:pointer; transition:.18s ease; border:1px solid transparent}
+.btn-primary{background:var(--accent); color:#06241b; box-shadow:0 6px 22px rgba(52,211,153,.22)}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:0 10px 26px rgba(52,211,153,.32)}
+.btn-ghost{border-color:var(--border); color:var(--fg-2); background:rgba(255,255,255,.02)}
+.btn-ghost:hover{border-color:#33425f; color:var(--fg)}
+
+/* hero */
+header.hero{padding:84px 0 36px}
+.eyebrow{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px;
+  color:var(--accent); border:1px solid var(--accent-dim); background:rgba(52,211,153,.06);
+  padding:5px 12px; border-radius:100px; letter-spacing:.02em}
+h1{font-size:clamp(34px,5.4vw,60px); line-height:1.04; letter-spacing:-.025em; font-weight:800;
+  margin:22px 0 18px; max-width:14ch}
+h1 .accent{background:linear-gradient(90deg,#34d399,#6aa6ff); -webkit-background-clip:text; background-clip:text; color:transparent}
+.lead{font-size:clamp(17px,2.1vw,20px); color:var(--fg-2); max-width:60ch; margin:0 0 28px}
+.lead b{color:var(--fg); font-weight:600}
+.cta-row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+.note{font-size:13px; color:var(--muted); font-family:var(--mono)}
+
+/* demo console */
+.console{margin:40px 0 8px; border:1px solid var(--border); border-radius:18px; overflow:hidden;
+  background:linear-gradient(180deg,#0e1728,#0b1120); box-shadow:0 30px 80px -30px rgba(0,0,0,.7)}
+.console-bar{display:flex; align-items:center; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border-soft);
+  background:rgba(255,255,255,.015)}
+.tl{width:11px; height:11px; border-radius:50%}
+.tl.r{background:#ff5f57}.tl.y{background:#febc2e}.tl.g{background:#28c840}
+.console-bar .path{margin-left:8px; font-family:var(--mono); font-size:12.5px; color:var(--muted)}
+.console-body{padding:22px}
+.ask{display:flex; gap:10px; align-items:center; background:var(--surface-2); border:1px solid var(--border);
+  border-radius:12px; padding:12px 14px}
+.ask svg{flex:none; color:var(--muted)}
+.ask input{flex:1; background:transparent; border:0; outline:0; color:var(--fg); font-size:16px; font-family:var(--sans)}
+.ask input::placeholder{color:#5d6b84}
+.ask .go{font-family:var(--mono); font-size:11px; color:var(--muted); border:1px solid var(--border); padding:3px 7px; border-radius:6px}
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 6px}
+.chip{font-size:13px; color:var(--fg-2); border:1px solid var(--border); background:rgba(255,255,255,.02);
+  padding:6px 12px; border-radius:100px; cursor:pointer; transition:.16s}
+.chip:hover{border-color:var(--accent); color:var(--fg)}
+.chip.active{border-color:var(--accent); color:var(--accent); background:rgba(52,211,153,.07)}
+
+.result-head{display:flex; align-items:center; justify-content:space-between; margin:20px 0 12px; gap:14px; flex-wrap:wrap}
+.result-head .q{font-weight:600}
+.stat{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:12.5px; color:var(--fg-2);
+  border:1px solid var(--border); border-radius:100px; padding:6px 13px; background:rgba(255,255,255,.02)}
+.stat b{color:var(--accent)} .stat s{color:var(--muted); text-decoration:line-through}
+
+.cards{display:flex; flex-direction:column; gap:10px}
+.card{border:1px solid var(--border); border-left:3px solid var(--accent-2); border-radius:11px; padding:13px 16px;
+  background:var(--surface); animation:rise .4s ease both}
+.card.warn{border-left-color:var(--warn)}
+.card-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:7px}
+.fileline{font-family:var(--mono); font-size:12.5px; color:#8fd9be; word-break:break-all}
+.score{font-family:var(--mono); font-size:11px; font-weight:700; color:#06241b; background:var(--accent-2);
+  padding:2px 8px; border-radius:6px; color:#06241b}
+.snippet{color:var(--fg-2); font-size:14px}
+.snippet mark{background:rgba(52,211,153,.18); color:#bff3df; padding:0 2px; border-radius:3px}
+@keyframes rise{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+
+/* conflict band */
+.conflict{margin-top:14px; border:1px solid #3a2530; background:linear-gradient(180deg,#1a1320,#140f1a);
+  border-radius:12px; padding:14px 16px}
+.conflict .tag{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px;
+  color:var(--danger); border:1px solid #4a2530; background:rgba(248,113,113,.07); padding:4px 10px; border-radius:100px}
+.conflict .pair{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px}
+.conflict .pair .c{border:1px solid var(--border-soft); border-radius:9px; padding:11px 13px; background:rgba(255,255,255,.02)}
+.conflict .pair .c .fl{font-family:var(--mono); font-size:12px; color:var(--muted); margin-bottom:5px}
+.conflict .pair .c b{color:var(--fg)}
+.vs{position:relative}
+@media(max-width:640px){.conflict .pair{grid-template-columns:1fr}}
+
+/* sections */
+section{padding:64px 0}
+.kicker{font-family:var(--mono); font-size:12px; color:var(--accent); letter-spacing:.04em; text-transform:uppercase}
+h2{font-size:clamp(26px,3.4vw,38px); letter-spacing:-.02em; font-weight:700; margin:10px 0 14px}
+.section-lead{color:var(--fg-2); max-width:62ch; margin:0 0 30px}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+@media(max-width:820px){.grid3{grid-template-columns:1fr}}
+.feature{border:1px solid var(--border); border-radius:var(--radius); padding:22px; background:var(--surface-2); transition:.2s}
+.feature:hover{border-color:#2b3a57; transform:translateY(-2px)}
+.feature .ic{width:42px; height:42px; border-radius:11px; display:grid; place-items:center; margin-bottom:14px;
+  background:rgba(52,211,153,.08); border:1px solid var(--accent-dim); color:var(--accent)}
+.feature h3{margin:0 0 7px; font-size:18px; letter-spacing:-.01em}
+.feature p{margin:0; color:var(--fg-2); font-size:14.5px}
+
+/* topic map */
+.tmap{display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:8px; height:230px}
+.tile{border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; justify-content:space-between;
+  border:1px solid rgba(255,255,255,.06)}
+.tile small{font-family:var(--mono); font-size:11px; opacity:.7}
+.tile span{font-weight:600; font-size:14px}
+.t-a{background:linear-gradient(160deg,#16324d,#11283f)} .t-b{background:linear-gradient(160deg,#143a31,#0f2c25)}
+.t-c{background:linear-gradient(160deg,#1f2a4a,#161f38)} .t-d{background:linear-gradient(160deg,#0f2c25,#0c2620)}
+.col{display:grid; grid-template-rows:1fr 1fr; gap:8px}
+
+/* install */
+.install{border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--surface-2)}
+.install .bar{padding:10px 16px; border-bottom:1px solid var(--border-soft); font-family:var(--mono); font-size:12px; color:var(--muted)}
+.install pre{margin:0; padding:20px 22px; font-family:var(--mono); font-size:13.5px; line-height:1.9; overflow:auto}
+.install pre .c{color:var(--muted)} .install pre .g{color:var(--accent)} .install pre .b{color:var(--accent-2)}
+
+/* footer */
+footer{border-top:1px solid var(--border-soft); padding:40px 0 56px; margin-top:30px}
+footer .row{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; align-items:center}
+footer .by{font-weight:600}
+footer .by a{color:var(--accent)}
+footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#"><span class="dot"></span>Concord <small>by Linnet Labs</small></a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#install">Install</a>
+    <a class="btn btn-ghost" href="https://github.com/linnetlabs/concord" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 0 0 8.84 21.5c.5.08.66-.22.66-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.1-1.46-1.1-1.46-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.26-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.4 9.4 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.39.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.48A10 10 0 0 0 12 2Z"/></svg>
+      GitHub</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="eyebrow">// grounded AI · cites every line</span>
+  <h1>Keep a sprawling repo <span class="accent">telling one story.</span></h1>
+  <p class="lead">Concord points your LLM at the <b>exact passages that matter — cited to file:line</b> — so it answers from your real docs instead of guessing, flags where they quietly <b>contradict themselves</b>, and does it in ~190 tokens instead of 1.8M. <b>AI you can actually check.</b></p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="#install">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Get started</a>
+    <a class="btn btn-ghost" href="#demo">See it answer a repo</a>
+    <span class="note">pip install concord-ai · MIT</span>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;align-items:center">
+    <span style="font-family:var(--mono);font-size:13px;color:var(--fg-2);border:1px solid var(--border);background:rgba(52,211,153,.05);border-radius:100px;padding:7px 14px"><b style="color:var(--accent);font-size:15px">≈190</b> tokens to answer, not <b style="color:var(--fg)">1.8M</b><span class="muted">*</span></span>
+    <span style="font-family:var(--mono);font-size:13px;color:var(--fg-2);border:1px solid var(--border);border-radius:100px;padding:7px 14px">every answer cited to <b style="color:var(--accent-2)">file:line</b></span>
+  </div>
+
+  <!-- interactive demo -->
+  <div class="console" id="demo">
+    <div class="console-bar">
+      <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
+      <span class="path">project-bluebird/  ·  14,551 passages indexed</span>
+    </div>
+    <div class="console-body">
+      <div class="ask">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg>
+        <input id="q" value="What does Bluebird Cloud cost?" aria-label="Ask the repo" readonly>
+        <span class="go">↵</span>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="result-head">
+        <span class="q mono" id="rq">retrieving…</span>
+        <span class="stat"><span>tokens:</span> <s id="full">1,803,690</s> <span>→</span> <b id="used">190</b></span>
+      </div>
+      <div class="cards" id="cards"></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:14px"><span class="muted">*</span>≈190 tokens for a targeted question vs reading the whole repo, and it returns the verbatim lines — not a summary. Broad questions read more (up to ~9,000× fewer in the extreme). <span class="muted">Honest numbers, always.</span></p>
+</div></header>
+
+<section id="how"><div class="wrap">
+  <span class="kicker">Three jobs, one engine</span>
+  <h2>Find. Compare. Guard.</h2>
+  <p class="section-lead">Every mode is a view over the same primitive: retrieve the exact prose that matters, so the model reasons over the right lines instead of the whole repo.</p>
+  <div class="grid3">
+    <div class="feature">
+      <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg></div>
+      <h3>Answer your repo</h3>
+      <p>Ask in plain language; get the relevant passages cited to <span class="mono">file:line</span> — catching the paraphrase a <span class="mono">grep</span> misses, without reading whole files into context.</p>
+    </div>
+    <div class="feature">
+      <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h11M8 12h11M8 18h11M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/></svg></div>
+      <h3>Spot contradictions</h3>
+      <p>Surface every place a fact is stated — a price, a policy, a product name — and flag where the statements <em>disagree</em>. The drift you'd never catch by hand.</p>
+    </div>
+    <div class="feature">
+      <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h3>Guard against leaks</h3>
+      <p>A deterministic lint that fails CI if an internal codename or a retired term reaches a public file. Recall‑complete on your list, zero token cost, runs on every commit.</p>
+    </div>
+  </div>
+</div></section>
+
+<section style="padding-top:8px"><div class="wrap">
+  <span class="kicker">Caught before it shipped</span>
+  <h2>The contradiction you couldn't see.</h2>
+  <p class="section-lead">Two files. Same fact. Different number. Concord puts them side by side and calls it.</p>
+  <div class="conflict">
+    <span class="tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 8v5M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linejoin="round"/></svg> conflicting pricing · 2 sources</span>
+    <div class="pair">
+      <div class="c"><div class="fl">docs/pricing/plans.md:12</div>Bluebird Cloud is <b>$49 / seat / month</b>, billed annually.</div>
+      <div class="c"><div class="fl">web/landing/index.html:88</div>Start Bluebird Cloud today for just <b>$39 / seat</b>.</div>
+    </div>
+  </div>
+</div></section>
+
+<section style="padding-top:8px"><div class="wrap">
+  <span class="kicker">Orientation</span>
+  <h2>A map of everything you've written.</h2>
+  <p class="section-lead">Concord clusters your prose into topics so you can see the shape of the corpus — and drill from theme to file to the exact passage.</p>
+  <div class="tmap">
+    <div class="tile t-a"><small>// theme</small><span>Pricing &amp; billing</span><small>1,204 passages</small></div>
+    <div class="col">
+      <div class="tile t-b"><small>// topic</small><span>Data protection</span></div>
+      <div class="tile t-c"><small>// topic</small><span>Onboarding</span></div>
+    </div>
+    <div class="col">
+      <div class="tile t-c"><small>// topic</small><span>Sub-processors</span></div>
+      <div class="tile t-b"><small>// topic</small><span>Retention</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="install" style="padding-top:8px"><div class="wrap">
+  <span class="kicker">Install</span>
+  <h2>Two lines to a tidier repo.</h2>
+  <p class="section-lead">Lint works with zero ML dependencies. Add the embeddings extra for semantic search and contradiction-finding.</p>
+  <div class="install">
+    <div class="bar">terminal — bash</div>
+<pre><span class="c"># the deterministic leak-guard — no ML needed</span>
+pip install concord-ai
+concord <span class="b">init</span> .          <span class="c"># scaffold rules.yaml (gitignored) + .gitignore it</span>
+concord <span class="b">lint</span> .          <span class="c"># fail CI if a codename reaches a public file</span>
+
+<span class="c"># + semantic search / contradiction-finding</span>
+pip install <span class="g">"concord-ai[embeddings]"</span>
+concord <span class="b">index</span> .         <span class="c"># build the local index (self-ignored)</span>
+concord <span class="b">read</span> <span class="g">"what have we said about pricing?"</span>
+</pre>
+  </div>
+</div></section>
+
+<footer><div class="wrap row">
+  <div>
+    <div class="by">Concord — <a href="https://linnetlabs.org" target="_blank" rel="noopener">by Linnet&nbsp;Labs</a></div>
+    <small>AI you can check · MIT licensed</small>
+  </div>
+  <small>Grounded in your repo, cited to file:line · embeddings via sentiment.ai</small>
+</div></footer>
+
+<script>
+const DATA = {
+  "What does Bluebird Cloud cost?": {used:190, cards:[
+    {f:"docs/pricing/plans.md:12", s:"0.91", t:'Bluebird Cloud is <mark>$49 / seat / month</mark>, billed annually. Volume tiers begin at 50 seats.'},
+    {f:"web/landing/index.html:88", s:"0.88", t:'Start Bluebird Cloud today for just <mark>$39 / seat</mark>.', warn:true},
+    {f:"docs/billing/legacy.md:7", s:"0.84", t:'Legacy plans are grandfathered at their original rate and are no longer sold.'},
+  ]},
+  "Our GDPR commitments": {used:142, cards:[
+    {f:"legal/dpa.md:31", s:"0.90", t:'Aggregate results are released only where the response group is <mark>n ≥ 8</mark>; smaller slices are suppressed.'},
+    {f:"legal/privacy-policy.md:5", s:"0.87", t:'Personal data is processed only for the purposes set out in the order and deleted within 30 days of termination.'},
+    {f:"legal/subprocessors.md:1", s:"0.83", t:'A current list of sub-processors is maintained and customers are notified before any change.'},
+  ]},
+  "Anywhere we leak the codename?": {used:0, lint:true, cards:[
+    {f:"web/landing/index.html:30", s:"LEAK", t:'&lt;h1&gt;Welcome to <mark>Project Bluebird</mark>&lt;/h1&gt; — internal codename in a public file.', warn:true},
+    {f:"docs/public/faq.md:14", s:"LEAK", t:'…the <mark>Project Bluebird</mark> beta program… — use the public product name.', warn:true},
+  ]},
+};
+const FULL = 1803690;
+const chips = document.getElementById('chips');
+const cards = document.getElementById('cards');
+const rq = document.getElementById('rq'), q = document.getElementById('q'), used = document.getElementById('used'), full = document.getElementById('full');
+function render(key){
+  const d = DATA[key]; q.value = key; rq.textContent = d.lint ? 'lint · public scope' : key;
+  used.textContent = d.used.toLocaleString();
+  full.textContent = d.lint ? '—' : FULL.toLocaleString();
+  cards.innerHTML = '';
+  d.cards.forEach((c,i)=>{
+    const el = document.createElement('div');
+    el.className = 'card' + (c.warn ? ' warn':'');
+    el.style.animationDelay = (i*60)+'ms';
+    el.innerHTML = `<div class="card-top"><span class="fileline">${c.f}</span><span class="score" ${c.s==='LEAK'?'style="background:#f87171"':''}>${c.s}</span></div><div class="snippet">${c.t}</div>`;
+    cards.appendChild(el);
+  });
+  [...chips.children].forEach(ch=>ch.classList.toggle('active', ch.dataset.k===key));
+}
+Object.keys(DATA).forEach(k=>{
+  const ch = document.createElement('button'); ch.className='chip'; ch.textContent=k; ch.dataset.k=k;
+  ch.onclick=()=>render(k); chips.appendChild(ch);
+});
+render("What does Bluebird Cloud cost?");
+</script>
+</body>
+</html>

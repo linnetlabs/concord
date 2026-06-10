@@ -1,0 +1,22 @@
+name: "Concord leak guard"
+description: "Fail the build if an internal codename or retired term reaches a public-facing file."
+author: "Linnet Labs"
+branding:
+  icon: "shield"
+  color: "green"
+inputs:
+  path:
+    description: "Repo path to scan"
+    required: false
+    default: "."
+  scope:
+    description: "Visibility categories to scan (comma-separated: public,internal,data)"
+    required: false
+    default: "public"
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        python -m pip install --quiet concord-ai
+        concord lint "${{ inputs.path }}" --scope "${{ inputs.scope }}"
