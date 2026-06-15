@@ -47,6 +47,10 @@ def cmd_lint(args) -> int:
         changed = set(gitdiff.changed_files(root, since=args.since)[0])
         findings = [f for f in findings if f.file in changed]
     errors = [f for f in findings if f.severity == "error"]
+    if getattr(args, "sarif", False):
+        from . import sarif
+        print(sarif.dumps(sarif.lint_results(findings), ["concord/leak"]))
+        return 1 if errors else 0
     for f in findings:
         print(f)
     n_sem = len(rules.semantic_terms())
@@ -209,6 +213,11 @@ def cmd_radar(args) -> int:
         radar.annotate_canonical(conflicts, _fm(_bg(args.path, write=False)))
     except Exception:  # noqa: BLE001 -- a suggestion is a bonus; never block the radar
         pass
+
+    if getattr(args, "sarif", False):  # CI: emit SARIF for github code-scanning, skip human output
+        from . import sarif
+        print(sarif.dumps(sarif.radar_results(conflicts), ["concord/contradiction"]))
+        return _radar_exit(args, conflicts, [])
 
     # prose mode: LLM-judge same-topic pairs with no numeric clash
     prose_confirmed = []
@@ -504,6 +513,7 @@ def main(argv=None) -> int:
     sp.add_argument("--rules", default=None)
     sp.add_argument("--scope", default="public", help="comma-separated visibility categories")
     sp.add_argument("--since", default=None, help="PR-diff: only flag files changed since this git ref (e.g. origin/main)")
+    sp.add_argument("--sarif", action="store_true", help="emit SARIF 2.1.0 for GitHub code-scanning (upload-sarif)")
     sp.set_defaults(func=cmd_lint)
 
     sp = sub.add_parser("find", help="exact + semantic hits, ranked")
@@ -549,6 +559,7 @@ def main(argv=None) -> int:
     sp.add_argument("--since", default=None, help="PR-diff: only contradictions touching files changed since this git ref")
     sp.add_argument("--fail-on", choices=["none", "conflict", "verified"], default="none",
                     help="CI exit code: 'conflict' fails on any candidate, 'verified' fails only on an LLM-confirmed one")
+    sp.add_argument("--sarif", action="store_true", help="emit SARIF 2.1.0 for GitHub code-scanning (upload-sarif)")
     sp.set_defaults(func=cmd_radar)
 
     sp = sub.add_parser("graph", help="library graph: files + doc-links + git freshness -> .concord/graph.json (a UI can read it)")

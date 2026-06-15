@@ -144,6 +144,17 @@ repos:
       - id: concord-radar           # block a value contradiction
 ```
 
+For findings annotated inline on the PR, emit **SARIF** and upload it to GitHub
+code-scanning (leaks and contradictions then appear in the "Code scanning" tab, on the
+offending lines):
+
+```yaml
+# .github/workflows/concord.yml
+      - run: pip install concord-ai && concord lint . --sarif > concord.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        with: { sarif_file: concord.sarif }
+```
+
 ## Find drift across history
 
 ```bash
