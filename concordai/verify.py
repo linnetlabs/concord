@@ -61,6 +61,48 @@ def verify(conflicts):
         return None
 
 
+def verify_prose(candidates):
+    """Judge prose contradiction candidates (no numeric clash) via LLM.
+
+    Returns aligned list of {real, why} dicts, or None if no LLM available.
+    Only pairs where real=True are genuine prose contradictions.
+    """
+    if not candidates:
+        return []
+    if not llmlabel.available():
+        return None
+    items = []
+    for i, c in enumerate(candidates):
+        items.append(
+            f"{i}.\n"
+            f"  A [{c['a']['file']}:{c['a']['line']}]: {c['a']['text'][:220]}\n"
+            f"  B [{c['b']['file']}:{c['b']['line']}]: {c['b']['text'][:220]}"
+        )
+    prompt = (
+        "For each numbered pair, decide if it is a GENUINE prose contradiction: A and B make "
+        "conflicting factual claims about the SAME specific subject with no numeric mismatch "
+        "(e.g. 'SOC2 certified' vs 'SOC2 in progress', 'open source' vs 'proprietary', "
+        "'deprecated' vs 'recommended'). Different scopes, products, time periods, or "
+        "conditions that legitimately differ are NOT contradictions. Judge each on its own "
+        "merits. Reply ONLY as a JSON array, one object per item in order:\n"
+        '{"real": true/false, "why": "<one short sentence reason>"}\n\n'
+        + "\n\n".join(items)
+    )
+    raw = llmlabel._llm(prompt, max_tokens=1500)
+    if not raw:
+        return None
+    a, b = raw.find("["), raw.rfind("]")
+    if a < 0 or b <= a:
+        return None
+    try:
+        arr = json.loads(raw[a:b + 1])
+        if not isinstance(arr, list):
+            return None
+        return (list(arr) + [{"real": False}] * len(candidates))[:len(candidates)]
+    except Exception:
+        return None
+
+
 def _flex(v: str) -> str:
     """Whitespace/operator-tolerant regex for a normalised value, with boundaries so
     '$49' doesn't match inside '$490' and 'n>=4' matches 'n ≥ 4'."""

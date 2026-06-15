@@ -118,3 +118,62 @@ def find_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbors: int
             })
     conflicts.sort(key=lambda c: -c["sim"])
     return {"value_passages": len(rows), "conflicts": conflicts[:max_conflicts]}
+
+
+def find_prose_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbors: int = 6, max_candidates: int = 30):
+    """Return same-topic pairs with NO numeric clash — candidates for LLM prose-contradiction judging.
+
+    Reuses the same sim-matrix, shared-subject, and near-identical-copy gates as find_conflicts,
+    but scans ALL non-hidden passages (not just those carrying typed values) and skips pairs that
+    already have a numeric clash (those belong to the deterministic radar). The returned dicts share
+    the same shape as find_conflicts output, with clash=[], kind="prose" added. Pass the result to
+    verify.verify_prose() to get LLM verdicts.
+    """
+    rows, cont = [], []
+    for i, p in enumerate(passages):
+        if any(part.startswith(".") for part in p.file.split("/")):
+            continue
+        rows.append(i)
+        cont.append(_content(p.text))
+    if len(rows) < 2:
+        return []
+
+    M = np.asarray(matrix[rows], dtype="float32")
+    S = M @ M.T
+    candidates, seen = [], set()
+    for a in range(len(rows)):
+        cnt = 0
+        for b in np.argsort(-S[a]):
+            if b == a:
+                continue
+            if S[a][b] < sim_threshold or cnt >= neighbors:
+                break
+            cnt += 1
+            key = (min(rows[a], rows[b]), max(rows[a], rows[b]))
+            if key in seen:
+                continue
+            # pairs with a numeric clash are already covered by find_conflicts
+            va = _typed_values(passages[rows[a]].text)
+            vb = _typed_values(passages[rows[b]].text)
+            if _conflicting(va, vb):
+                continue
+            shared = cont[a] & cont[b]
+            union = cont[a] | cont[b]
+            if not shared:
+                continue  # different subjects
+            if union and len(shared) / len(union) > 0.9:
+                continue  # near-identical copies — not a contradiction
+            seen.add(key)
+            pa, pb = passages[rows[a]], passages[rows[b]]
+            candidates.append({
+                "sim": round(float(S[a][b]), 3),
+                "clash": [],
+                "kind": "prose",
+                "subject": sorted(shared)[:4],
+                "a": {"file": pa.file, "line": pa.start_line, "values": [],
+                      "text": " ".join(pa.text.split())[:240]},
+                "b": {"file": pb.file, "line": pb.start_line, "values": [],
+                      "text": " ".join(pb.text.split())[:240]},
+            })
+    candidates.sort(key=lambda c: -c["sim"])
+    return candidates[:max_candidates]

@@ -191,6 +191,26 @@ def cmd_radar(args) -> int:
         from . import gitdiff
         changed = set(gitdiff.changed_files(Path(args.path), since=args.since)[0])
         conflicts = [c for c in conflicts if c["a"]["file"] in changed or c["b"]["file"] in changed]
+
+    # prose mode: LLM-judge same-topic pairs with no numeric clash
+    prose_confirmed = []
+    if getattr(args, "prose", False):
+        from . import llmlabel, verify as V
+        st = llmlabel.status()
+        if not st["available"]:
+            print("# --prose requires an LLM (set DEEPSEEK_API_KEY/ANTHROPIC_API_KEY/OPENAI_API_KEY)", file=sys.stderr)
+        else:
+            print(f"# prose scan: using YOUR {st['provider']} API key ({st['model']}) — you pay for usage", file=sys.stderr)
+            prose_candidates = radar.find_prose_conflicts(idx.passages, idx.matrix, max_candidates=args.max)
+            verdicts = V.verify_prose(prose_candidates)
+            if verdicts is None:
+                print("# prose LLM judge failed — skipping prose results", file=sys.stderr)
+            else:
+                for c, d in zip(prose_candidates, verdicts):
+                    if d.get("real"):
+                        c["why"] = d.get("why", "")
+                        prose_confirmed.append(c)
+
     if args.verify:
         from . import llmlabel, verify as V
         st = llmlabel.status()
@@ -206,13 +226,28 @@ def cmd_radar(args) -> int:
                 print(f"~ {' vs '.join(c['clash'])}  ->  canonical: {d.get('canonical')}   ({d.get('why', '')})")
                 print(f"    {c['a']['file']}:{c['a']['line']}")
                 print(f"    {c['b']['file']}:{c['b']['line']}")
+            if prose_confirmed:
+                print(f"\n# {len(prose_confirmed)} prose contradiction(s) — LLM-confirmed\n")
+                for c in prose_confirmed:
+                    print(f"~ [prose]  subject: {', '.join(c['subject'][:3])}   (sim {c['sim']})")
+                    print(f"    {c['a']['file']}:{c['a']['line']}  {c['a']['text'][:80]}")
+                    print(f"    {c['b']['file']}:{c['b']['line']}  {c['b']['text'][:80]}")
+                    print(f"    why: {c.get('why', '')}")
             return 0
+
     print(f"# {len(conflicts)} value-conflict candidate(s) — same topic + same kind of number, different values")
     print("# confirm each (add --verify to let an LLM judge + name the canonical value).\n")
     for c in conflicts:
         print(f"~ {' vs '.join(c['clash'])}   (sim {c['sim']}; subject: {', '.join(c['subject'][:3])})")
         print(f"    {c['a']['file']}:{c['a']['line']}")
         print(f"    {c['b']['file']}:{c['b']['line']}")
+    if prose_confirmed:
+        print(f"\n# {len(prose_confirmed)} prose contradiction(s) — LLM-confirmed\n")
+        for c in prose_confirmed:
+            print(f"~ [prose]  subject: {', '.join(c['subject'][:3])}   (sim {c['sim']})")
+            print(f"    {c['a']['file']}:{c['a']['line']}  {c['a']['text'][:80]}")
+            print(f"    {c['b']['file']}:{c['b']['line']}  {c['b']['text'][:80]}")
+            print(f"    why: {c.get('why', '')}")
     return 0
 
 
@@ -330,6 +365,31 @@ def cmd_activity(args) -> int:
     return 0
 
 
+def cmd_graph(args) -> int:
+    from .graph import graph as build_graph
+    from .index import _DIR
+    g = build_graph(args.path, write=not args.no_write)
+    s = g["stats"]
+    print(f"# library graph — {s['files']} files, {s['links']} doc-links "
+          f"({s['stale']} stale, {s['lagging']} lagging)")
+    if not args.no_write:
+        print(f"# wrote {str(args.path).rstrip('/')}/{_DIR}/graph.json (nodes + edges; a UI can consume it)")
+    indeg = {}
+    for e in g["edges"]:
+        indeg[e["target"]] = indeg.get(e["target"], 0) + 1
+    top = sorted(indeg.items(), key=lambda x: -x[1])[: args.max]
+    if top:
+        print("\n## most-referenced files (incoming doc-links):")
+        for f, n in top:
+            print(f"  {n:3d} <-  {f}")
+    lagging = [n for n in g["nodes"] if n["lagging"]]
+    if lagging:
+        print(f"\n## lagging — last edited well before their graph neighbours ({len(lagging)}):")
+        for n in lagging[: args.max]:
+            print(f"  last {n['last'] or '?'}   {n['file']}")
+    return 0
+
+
 def cmd_ui(args) -> int:
     import webbrowser
     from . import server
@@ -438,8 +498,15 @@ def main(argv=None) -> int:
     sp.add_argument("path", nargs="?", default=".")
     sp.add_argument("--max", type=int, default=40)
     sp.add_argument("--verify", action="store_true", help="let an LLM confirm real contradictions + name the canonical value")
+    sp.add_argument("--prose", action="store_true", help="also detect prose contradictions (LLM-judged; requires an API key)")
     sp.add_argument("--since", default=None, help="PR-diff: only contradictions touching files changed since this git ref")
     sp.set_defaults(func=cmd_radar)
+
+    sp = sub.add_parser("graph", help="library graph: files + doc-links + git freshness -> .concord/graph.json (a UI can read it)")
+    sp.add_argument("path", nargs="?", default=".")
+    sp.add_argument("--max", type=int, default=20)
+    sp.add_argument("--no-write", action="store_true", help="print only; do not write .concord/graph.json")
+    sp.set_defaults(func=cmd_graph)
 
     sp = sub.add_parser("activity", help="where dev effort goes + collision risk (files 2+ authors touch), from git")
     sp.add_argument("path", nargs="?", default=".")

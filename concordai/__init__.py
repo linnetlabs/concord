@@ -13,6 +13,8 @@ from .visibility import classify
 from .lint import Finding, lint_repo
 from .chunk import Passage, chunk_file, chunk_repo
 from .find import Hit, find
+from .links import links_in, scan as scan_links
+from .graph import graph, consistency
 
 __all__ = [
     "Ruleset",
@@ -26,5 +28,9 @@ __all__ = [
     "chunk_repo",
     "Hit",
     "find",
+    "links_in",
+    "scan_links",
+    "graph",
+    "consistency",
     "__version__",
 ]

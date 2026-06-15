@@ -24,13 +24,19 @@ strings, comments and named constants in your code and config) and lets you:
 
 - **Radar:** *"where does the same fact disagree with itself?"* Same topic, same kind
   of value (a price, a threshold, a gating constant), different number, across prose
-  and source (`$49` vs `$39`, `MIN_N = 8` vs `"min_n": 5`).
+  and source (`$49` vs `$39`, `MIN_N = 8` vs `"min_n": 5`). With `--prose` it also
+  surfaces **non-numeric** contradictions (`SOC 2 certified` vs `SOC 2 in progress`),
+  LLM-judged over the same retrieval, opt-in.
 - **Lint:** *"does any internal codename or retired term reach a file that ships
   publicly?"* Deterministic exact-match over a known term list, scanning raw text.
   Runs in CI or a pre-commit hook.
 - **Find / Read:** *"where else do we say something like this?"* and *"answer X from
   the repo."* Exact and semantic matches, cited to `file:line`, pulling only the
   relevant passages into context instead of whole files.
+- **Graph:** *"how do the docs link together, and which have fallen behind?"* A
+  library graph of intra-repo references (markdown links, `see X.md`, HTML hrefs) joined
+  with per-file git freshness, written to `.concord/graph.json` for a UI to consume.
+  Flags docs last edited well before the neighbours they link to (`lagging`).
 
 The core is **deterministic**: the lint is regex, the ranking is geometry, and
 extraction and the contradiction radar run without a model. A language model enters
@@ -152,6 +158,8 @@ concord index  .                           # build the semantic index (self-igno
 concord find   "annual subscription pricing"  # exact + semantic hits, cited to file:line
 concord read   "what have we said about pricing?"   # retrieve the relevant passages
 concord radar  . --verify                  # find contradictions; --verify lets an LLM confirm + name the canonical value
+concord radar  . --prose                   # also catch non-numeric contradictions (SOC2 certified vs in progress); LLM-judged
+concord graph  .                           # library graph (doc-links + git freshness) -> .concord/graph.json
 concord resolve .                          # walk confirmed contradictions and apply the fix (interactive; --apply = auto)
 concord report . --out report.html         # shareable consistency report (lint + radar)
 concord drift  "$49"                       # which commits changed a value (git pickaxe)
@@ -166,9 +174,10 @@ The optional LLM steps (`radar --verify`, `resolve`, and naming topics in the ex
 API key** (you pay for usage), and the tool is explicit about it everywhere (a status pill, cost tooltips,
 CLI notes).
 
-- Set any of `ANTHROPIC_API_KEY` (preferred, the better judge), `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`,
-  `GROQ_API_KEY`, `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`, `GEMINI_API_KEY`. The explorer's ⚙ picks among
-  the keys you actually have.
+- Set any of `DEEPSEEK_API_KEY` (the cheap default -- verify/label/resolve is constrained JSON judging,
+  so a frontier model is overkill), `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`,
+  `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`, `GEMINI_API_KEY`. Auto-selection prefers DeepSeek when its key
+  is present, then falls through that order; the explorer's ⚙ picks among the keys you actually have.
 - `CONCORD_NO_LLM=1` turns AI off entirely; `CONCORD_LLM=<provider>` forces one.
 - No key? Everything except verify / resolve / AI-naming still works.
 
