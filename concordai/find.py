@@ -1,4 +1,4 @@
-"""The `find()` primitive — exact and semantic channels, one ranked result.
+"""The `find()` primitive -- exact and semantic channels, one ranked result.
 
 Every mode in Concord is a view over `find`:
   - the lint        = find(scope="public", channels=("exact",)) per banned term
@@ -57,7 +57,7 @@ def find(
 
     `query` may be a single string or several phrasings (multi-query). Semantic
     scores are MAX-merged across phrasings, so a passage matching ANY phrasing ranks
-    high — measured to recover recall a single phrasing misses. Pair multi-query with
+    high -- measured to recover recall a single phrasing misses. Pair multi-query with
     a patience-walk over the ranked list, not a fixed `top`, or the phrasings crowd
     each other out of a small window.
 
@@ -93,7 +93,7 @@ def find(
                         continue
                     hits.append(Hit(p.file, p.start_line, p.text[:200], float(sims[int(i)]), "semantic", p.visibility))
         except (FileNotFoundError, RuntimeError):
-            pass  # no index / no ML backend — exact channel still returned
+            pass  # no index / no ML backend -- exact channel still returned
 
     hits.sort(key=lambda h: (-h.score, h.match_type != "exact", h.file, h.line))
     return hits[:top]

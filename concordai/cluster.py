@@ -1,12 +1,12 @@
-"""Passage clustering — an annotated topic map over the index.
+"""Passage clustering -- an annotated topic map over the index.
 
 Flat top-k retrieval under-retrieves on "find ALL X" queries: it stops at a cliff of
 near-duplicates and misses the scattered rest. A topic map fixes that two ways:
   - coverage: route a broad query to its cluster and return the whole neighbourhood
   - scoping:  run contradiction checks within one topic, O(cluster^2) not O(corpus^2)
 
-Two levels — MiniBatchKMeans leaf clusters, then agglomerative super-clusters over the
-leaf centroids — give an annotated hierarchy. Labels are tf-idf top terms (deterministic,
+Two levels -- MiniBatchKMeans leaf clusters, then agglomerative super-clusters over the
+leaf centroids -- give an annotated hierarchy. Labels are tf-idf top terms (deterministic,
 no model). This operates at the passage level (verbatim prose), not the entity level.
 """
 from __future__ import annotations
@@ -36,7 +36,7 @@ def _labels_for(texts, assignments, n_clusters, top=4) -> List[str]:
 
     Honest about what it is: a vague keyword summary, fine for orientation. Clean,
     human-readable topic NAMES come from `concord topics --samples` + a driver naming
-    each cluster — deterministic heading-based labelling was tried and mislabelled
+    each cluster -- deterministic heading-based labelling was tried and mislabelled
     themes, so it's not shipped.
     """
     from sklearn.feature_extraction.text import TfidfVectorizer
@@ -54,7 +54,7 @@ def _labels_for(texts, assignments, n_clusters, top=4) -> List[str]:
             out.append(f"cluster {c}")
             continue
         mean = np.asarray(X[rows].mean(axis=0)).ravel()
-        out.append(" · ".join(terms[mean.argsort()[::-1][:top]]))
+        out.append(", ".join(terms[mean.argsort()[::-1][:top]]))
     return out
 
 
@@ -81,7 +81,7 @@ def cluster(matrix, texts, k_leaves: int = 40, n_super: int = 8) -> Clustering:
 
 # Cosine-distance below which two passages are the "same facet". Tuned empirically
 # for e5 geometry (it packs related prose tightly): a sweep on real windows put the
-# clean knee at 0.15 — a near-duplicate query collapses to 1 facet, a topically
+# clean knee at 0.15 -- a near-duplicate query collapses to 1 facet, a topically
 # spread one fans out (~3 for a broad GDPR query). This models facet COUNT = topical
 # breadth, not geometric separability (silhouette/elbow over-split near-dup windows;
 # they failed the single-blob ground-truth test). Lower it to split finer.
@@ -128,10 +128,10 @@ def facet_labels(texts, vecs, distance_threshold: float = FACET_DISTANCE) -> Lis
 
 
 def route(query_vec, clustering: Clustering, top: int = 1) -> List[int]:
-    """EXPERIMENTAL — nearest leaf cluster(s) to a query.
+    """EXPERIMENTAL -- nearest leaf cluster(s) to a query.
 
     Measured to UNDERPERFORM flat retrieval (a centroid is a blurry average; specific
-    queries match specific passages better). Kept for exploration only — not a
+    queries match specific passages better). Kept for exploration only -- not a
     retrieval path. Use flat find()/read for actually locating content.
     """
     q = np.asarray(query_vec, dtype="float32")

@@ -1,4 +1,4 @@
-"""The leak lint — Concord's deterministic, recall-complete layer (M0).
+"""The leak lint -- Concord's deterministic, recall-complete layer (M0).
 
 Scans every PUBLIC file line-by-line for banned wording (exact + regex terms).
 No embeddings, no language model, zero token cost. This is the layer that runs
@@ -30,7 +30,7 @@ class Finding:
     match_type: str = "exact"
 
     def __str__(self) -> str:
-        return f"{self.file}:{self.line}:{self.col}: [{self.severity}] {self.term_id} — {self.reason}"
+        return f"{self.file}:{self.line}:{self.col}: [{self.severity}] {self.term_id} -- {self.reason}"
 
 
 def _iter_files(root: Path) -> Iterable[Path]:
@@ -46,7 +46,7 @@ def _read_text(path: Path, max_bytes: int = 2_000_000) -> Optional[str]:
             return None
         return path.read_text(encoding="utf-8")
     except (UnicodeDecodeError, OSError):
-        return None  # binary or unreadable — skip
+        return None  # binary or unreadable -- skip
 
 
 def lint_repo(

@@ -34,7 +34,7 @@ class Term:
             return re.compile(self.pattern or "", flags)
         if self.match == "exact":
             return re.compile(re.escape(self.pattern or ""), flags)
-        return None  # semantic — handled by the embedding channel
+        return None  # semantic -- handled by the embedding channel
 
 
 @dataclass

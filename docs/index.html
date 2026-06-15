@@ -166,7 +166,7 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
 </div></nav>
 
 <header class="hero"><div class="wrap">
-  <span class="eyebrow">// grounded AI · cites every line</span>
+  <span class="eyebrow">// grounded AI, cites every line</span>
   <h1>Keep a sprawling repo <span class="accent">telling one story.</span></h1>
   <p class="lead">Concord points your LLM at the <b>exact passages, cited to file:line</b>, so it answers from your real docs instead of working from memory, and flags where they quietly <b>contradict themselves</b>, reading a few hundred tokens instead of the whole repo. <b>AI you can check.</b></p>
   <div class="cta-row">
@@ -174,7 +174,7 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Get started</a>
     <a class="btn btn-ghost" href="#demo">See it answer a repo</a>
-    <span class="note">pip install concord-ai · MIT</span>
+    <span class="note">pip install concord-ai, MIT</span>
   </div>
 
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;align-items:center">
@@ -186,18 +186,18 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
   <div class="console" id="demo">
     <div class="console-bar">
       <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
-      <span class="path">demo · project-bluebird/  ·  14,551 passages indexed</span>
+      <span class="path">demo, project-bluebird/ ,  14,551 passages indexed</span>
     </div>
     <div class="console-body">
       <div class="ask">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg>
         <input id="q" value="What does Bluebird Cloud cost?" aria-label="Ask the repo" readonly>
-        <span class="go">↵</span>
+        <span class="go">Go</span>
       </div>
       <div class="chips" id="chips"></div>
       <div class="result-head">
-        <span class="q mono" id="rq">retrieving…</span>
-        <span class="stat"><span>tokens:</span> <s id="full">1,803,690</s> <span>→</span> <b id="used">190</b></span>
+        <span class="q mono" id="rq">retrieving...</span>
+        <span class="stat"><span>tokens:</span> <s id="full">1,803,690</s> <span>-></span> <b id="used">190</b></span>
       </div>
       <div class="cards" id="cards"></div>
     </div>
@@ -233,7 +233,7 @@ footer small{color:var(--muted); font-family:var(--mono); font-size:12px}
   <h2>The contradiction you couldn't see.</h2>
   <p class="section-lead">Two files. Same fact. Different number. Concord puts them side by side and calls it.</p>
   <div class="conflict">
-    <span class="tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 8v5M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linejoin="round"/></svg> conflicting pricing · 2 sources</span>
+    <span class="tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 8v5M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linejoin="round"/></svg> conflicting pricing, 2 sources</span>
     <div class="pair">
       <div class="c"><div class="fl">docs/pricing/plans.md:12</div>Bluebird Cloud is <b>$49 / seat / month</b>, billed annually.</div>
       <div class="c"><div class="fl">web/landing/index.html:88</div>Start Bluebird Cloud today for just <b>$39 / seat</b>.</div>
@@ -282,9 +282,9 @@ concord <span class="b">read</span> <span class="g">"what have we said about pri
 <footer><div class="wrap row">
   <div>
     <div class="by">Concord, <a href="https://linnetlabs.org" target="_blank" rel="noopener">by Linnet&nbsp;Labs</a></div>
-    <small>AI you can check · MIT licensed</small>
+    <small>AI you can check, MIT licensed</small>
   </div>
-  <small>Grounded in your repo, cited to file:line · embeddings via sentiment.ai</small>
+  <small>Grounded in your repo, cited to file:line, embeddings via sentiment.ai</small>
 </div></footer>
 
 <script>
@@ -295,7 +295,7 @@ const DATA = {
     {f:"docs/billing/legacy.md:7", s:"0.84", t:'Legacy plans are grandfathered at their original rate and are no longer sold.'},
   ]},
   "Our GDPR commitments": {used:142, cards:[
-    {f:"legal/dpa.md:31", s:"0.90", t:'Aggregate results are released only where the response group is <mark>n ≥ 8</mark>; smaller slices are suppressed.'},
+    {f:"legal/dpa.md:31", s:"0.90", t:'Aggregate results are released only where the response group is <mark>n >= 8</mark>; smaller slices are suppressed.'},
     {f:"legal/privacy-policy.md:5", s:"0.87", t:'Personal data is processed only for the purposes set out in the order and deleted within 30 days of termination.'},
     {f:"legal/subprocessors.md:1", s:"0.83", t:'A current list of sub-processors is maintained and customers are notified before any change.'},
   ]},
@@ -309,7 +309,7 @@ const chips = document.getElementById('chips');
 const cards = document.getElementById('cards');
 const rq = document.getElementById('rq'), q = document.getElementById('q'), used = document.getElementById('used'), full = document.getElementById('full');
 function render(key){
-  const d = DATA[key]; q.value = key; rq.textContent = d.lint ? 'lint · public scope' : key;
+  const d = DATA[key]; q.value = key; rq.textContent = d.lint ? 'lint, public scope' : key;
   used.textContent = d.used.toLocaleString();
   full.textContent = d.lint ? 'n/a' : FULL.toLocaleString();
   cards.innerHTML = '';

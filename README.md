@@ -5,7 +5,7 @@
 ![PyPI](https://img.shields.io/pypi/v/concord-ai?color=blue)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
-> ## ⚡ Find where your repo contradicts itself, across code *and* docs
+> ## Find where your repo contradicts itself, across code *and* docs
 >
 > `$49` on the pricing page, `$39` in an FAQ. `MIN_RESPONDENTS = 8` in a Python module,
 > `"min_n": 5` in a config. Concord catches the contradictions `grep` and concept-graphs
@@ -164,7 +164,7 @@ concord resolve .                          # walk confirmed contradictions and a
 concord report . --out report.html         # shareable consistency report (lint + radar)
 concord drift  "$49"                       # which commits changed a value (git pickaxe)
 concord topics .                           # annotated topic map (browse; --samples to name them)
-concord ui     .                           # premium live explorer in your browser (search · topics · radar)
+concord ui     .                           # premium live explorer in your browser (search, topics, radar)
 ```
 
 ## AI is optional, and it's *your* key
@@ -177,7 +177,7 @@ CLI notes).
 - Set any of `DEEPSEEK_API_KEY` (the cheap default -- verify/label/resolve is constrained JSON judging,
   so a frontier model is overkill), `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`,
   `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`, `GEMINI_API_KEY`. Auto-selection prefers DeepSeek when its key
-  is present, then falls through that order; the explorer's ⚙ picks among the keys you actually have.
+  is present, then falls through that order; the explorer's settings picker uses whichever keys you actually have.
 - `CONCORD_NO_LLM=1` turns AI off entirely; `CONCORD_LLM=<provider>` forces one.
 - No key? Everything except verify / resolve / AI-naming still works.
 
@@ -193,4 +193,4 @@ CLI notes).
 tested, but are young, so treat them as beta. See [`eval/README.md`](eval/README.md)
 for the benchmarks and [the paper](paper/paper.md) for the design.
 
-[GitHub](https://github.com/linnetlabs/concord) · MIT licensed · a [Linnet Labs](https://linnetlabs.org) project.
+[GitHub](https://github.com/linnetlabs/concord), MIT licensed, a [Linnet Labs](https://linnetlabs.org) project.

@@ -1,8 +1,8 @@
 """Git-diff driver for incremental index updates.
 
 The index records the commit it was built at (`.concord/meta.json`). `concord update`
-asks git what changed since then — or, in a post-commit hook, just what the last
-commit touched — so re-embedding cost scales with the diff, not the whole corpus.
+asks git what changed since then -- or, in a post-commit hook, just what the last
+commit touched -- so re-embedding cost scales with the diff, not the whole corpus.
 """
 from __future__ import annotations
 

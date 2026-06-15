@@ -17,13 +17,13 @@ def test_elbow_edge_cases():
 
 def test_patience_stops_after_consecutive_irrelevant():
     items = ["a", "b", "c", "d", "e"]
-    judge = lambda x: x in {"a", "b"}  # noqa: E731 — c,d,e irrelevant
+    judge = lambda x: x in {"a", "b"}  # noqa: E731 -- c,d,e irrelevant
     assert adaptive_take(items, [0] * 5, judge=judge, patience=2) == ["a", "b"]
 
 
 def test_single_miss_does_not_stop():
     items = ["a", "b", "c", "d"]
-    judge = lambda x: x in {"a", "c", "d"}  # noqa: E731 — only b misses (1 < patience)
+    judge = lambda x: x in {"a", "c", "d"}  # noqa: E731 -- only b misses (1 < patience)
     assert adaptive_take(items, [0] * 4, judge=judge, patience=2) == ["a", "c", "d"]
 
 

@@ -1,4 +1,4 @@
-# Concord example ruleset — GENERIC, safe to publish.
+# Concord example ruleset -- GENERIC, safe to publish.
 # Copy to rules.yaml (gitignored) and replace with your real terms.
 #
 # A rule says: "this wording must not appear in a PUBLIC file."
@@ -18,7 +18,7 @@ visibility:
     - "docs/internal/**"
     - "notes/**"
   data:
-    - "**/*.json"          # payloads/fixtures: data, not prose — skipped by lint
+    - "**/*.json"          # payloads/fixtures: data, not prose -- skipped by lint
 
 # Banned wording. `match: exact` is a literal/regex string scan (recall-complete,
 # zero cost). `match: semantic` (todo) will also flag close paraphrases via the
@@ -27,7 +27,7 @@ terms:
   - id: codename-bluebird
     match: regex
     pattern: "Project[ -]?Bluebird"
-    reason: "Internal codename — never ship the codename, use the public product name."
+    reason: "Internal codename -- never ship the codename, use the public product name."
     severity: error
 
   - id: retired-name-falcon

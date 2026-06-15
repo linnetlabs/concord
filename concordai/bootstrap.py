@@ -1,4 +1,4 @@
-"""Repo bootstrapping — make the private ruleset and the built index uncommittable.
+"""Repo bootstrapping -- make the private ruleset and the built index uncommittable.
 
 Concord's whole premise is that the ruleset (your real codenames) must never enter
 version control. `concord init` enforces that mechanically rather than trusting the
@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 _GITIGNORE_LINES = ["rules.yaml", "rules.local.yaml", "*.local.yaml", ".concord/"]
-_HEADER = "# Concord — private ruleset + built index (never commit these)"
+_HEADER = "# Concord -- private ruleset + built index (never commit these)"
 
 
 def ensure_gitignore(root: "str | Path") -> List[str]:

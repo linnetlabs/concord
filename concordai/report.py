@@ -1,4 +1,4 @@
-"""concord report — a self-contained, shareable consistency report (one HTML file).
+"""concord report -- a self-contained, shareable consistency report (one HTML file).
 
 Bundles the leak lint + the contradiction radar (LLM-verified if a key is set) into a
 premium dark page you can open, share, or attach to a PR. By Linnet Labs.
@@ -47,19 +47,19 @@ def build(repo, when, lint_findings, conflicts, verdicts=None):
 
     leak_html = "".join(
         f'<div class="card err"><span class="fl">{_e(f.file)}:{f.line}</span> '
-        f'<span class="snip"><b>{_e(f.term_id)}</b> — {_e(f.reason)}</span></div>'
+        f'<span class="snip"><b>{_e(f.term_id)}</b> -- {_e(f.reason)}</span></div>'
         for f in lint_findings
-    ) or '<div class="empty">No banned terms reached public files. ✅</div>'
+    ) or '<div class="empty">No banned terms reached public files.</div>'
 
     def conflict_block(items, verified):
         if not items:
-            return '<div class="empty">No contradictions found. ✅</div>'
+            return '<div class="empty">No contradictions found.</div>'
         out = []
         for entry in items:
             c, d = entry if verified else (entry, None)
-            tag = (f'<span class="tag">contradiction · {_e(" vs ".join(c["clash"]))}</span>'
-                   if not verified else f'<span class="tag">confirmed · {_e(" vs ".join(c["clash"]))}</span>')
-            canon = f'<div class="canon">canonical: {_e(d.get("canonical"))} — {_e(d.get("why",""))}</div>' if d else ""
+            tag = (f'<span class="tag">contradiction, {_e(" vs ".join(c["clash"]))}</span>'
+                   if not verified else f'<span class="tag">confirmed, {_e(" vs ".join(c["clash"]))}</span>')
+            canon = f'<div class="canon">canonical: {_e(d.get("canonical"))} -- {_e(d.get("why",""))}</div>' if d else ""
             out.append(
                 f'<div class="conflict">{tag}{canon}<div class="pair">'
                 f'<div class="c"><span class="fl">{_e(c["a"]["file"])}:{c["a"]["line"]}</span>'
@@ -75,19 +75,19 @@ def build(repo, when, lint_findings, conflicts, verdicts=None):
 
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Concord report — {_e(repo)}</title>
+<title>Concord report -- {_e(repo)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>{_CSS}</style></head><body><div class="wrap">
-<div class="brand"><span class="dot"></span>Concord <small>report · <a href="https://linnetlabs.org">by Linnet Labs</a></small></div>
-<h1>Consistency report — {_e(repo)}</h1>
-<div class="sub">{_e(when)} · computed by Concord, grounded in your repo</div>
+<div class="brand"><span class="dot"></span>Concord <small>report, <a href="https://linnetlabs.org">by Linnet Labs</a></small></div>
+<h1>Consistency report -- {_e(repo)}</h1>
+<div class="sub">{_e(when)}, computed by Concord, grounded in your repo</div>
 <div class="kpi">
   <div class="c"><b style="color:{'var(--danger)' if errs else 'var(--accent)'}">{len(errs)}</b><span>codename leaks (public)</span></div>
   <div class="c"><b style="color:{'var(--warn)' if radar_count else 'var(--accent)'}">{radar_count}</b><span>{_e(radar_label)}</span></div>
 </div>
-<h2>🛡️ Leak guard — banned terms in public files</h2>
+<h2>Leak guard -- banned terms in public files</h2>
 {leak_html}
-<h2>⚠️ Contradiction radar</h2>
+<h2>Contradiction radar</h2>
 {radar_html}
-<footer>Concord — keep a sprawling repo telling one story. AI you can check · by Linnet Labs.</footer>
+<footer>Concord -- keep a sprawling repo telling one story. AI you can check, by Linnet Labs.</footer>
 </div></body></html>"""

@@ -1,4 +1,4 @@
-"""Content-hash manifest — change detection without git.
+"""Content-hash manifest -- change detection without git.
 
 `concord update` prefers git (it already knows the diff for free). But in a non-git
 folder there is no diff source, so the index also records a manifest of file content

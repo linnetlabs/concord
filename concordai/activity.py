@@ -1,4 +1,4 @@
-"""Activity radar — where dev effort goes, and where edits collide, from git.
+"""Activity radar -- where dev effort goes, and where edits collide, from git.
 
 Per-file churn and how many authors touched each file in the window (a concurrent-edit
 / merge-conflict signal), mapped onto the repo's directory tree so the explorer can

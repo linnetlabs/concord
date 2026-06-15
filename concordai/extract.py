@@ -1,10 +1,10 @@
-"""Content extraction — pull the meaningful, contradiction-worthy units out of each
+"""Content extraction -- pull the meaningful, contradiction-worthy units out of each
 file type, leaving the syntax behind.
 
-The semantic index should hold what a reader could actually contradict — prose,
-headings, comments, string literals, config values, gating constants — not braces,
+The semantic index should hold what a reader could actually contradict -- prose,
+headings, comments, string literals, config values, gating constants -- not braces,
 selectors, tags, or operators. Extractors are registered by extension, so adding a
-language (Rust, Go, …) is a single function and nothing else changes.
+language (Rust, Go, ...) is a single function and nothing else changes.
 
 The leak-lint does NOT use this module: it scans raw text, because a codename can
 hide in an HTML attribute or a minified string that extraction would strip.
@@ -30,18 +30,18 @@ def register(*exts: str):
 
 
 def supported_extensions() -> List[str]:
-    """The extensions Concord semantically indexes, sorted — for the CLI/UI to show."""
+    """The extensions Concord semantically indexes, sorted -- for the CLI/UI to show."""
     return sorted(_REGISTRY)
 
 
-# ── quality gate ──────────────────────────────────────────────────────────────
+# -- quality gate --------------------------------------------------------------
 _WORD = re.compile(r"[A-Za-z]{2,}")
 _NUM = re.compile(r"\d")
 
 
 def keep(text: str) -> bool:
     """Worth indexing if it reads like prose (>=3 words, mostly letters) OR pairs an
-    identifier-ish word with a number — a price/threshold/version/gate that could
+    identifier-ish word with a number -- a price/threshold/version/gate that could
     contradict another. Drops stubs, punctuation, and bare syntax (`}`, `---`, `;`)."""
     t = text.strip()
     if not t:
@@ -53,7 +53,7 @@ def keep(text: str) -> bool:
     return bool(words) and bool(_NUM.search(t))
 
 
-# ── prose: markdown / text / rst (paragraph blocks on blank lines) ─────────────
+# -- prose: markdown / text / rst (paragraph blocks on blank lines) -------------
 @register(".md", ".markdown", ".txt", ".rst", ".mdx")
 def _paragraphs(text: str) -> List[Block]:
     blocks: List[Block] = []
@@ -74,10 +74,10 @@ def _paragraphs(text: str) -> List[Block]:
     return blocks
 
 
-# ── code/config: keep the human-meaningful units — comments, string literals, and
-#    named numeric constants (MIN_N = 8 · "min_n": 5 · timeout = 30) — and drop the
+# -- code/config: keep the human-meaningful units -- comments, string literals, and
+#    named numeric constants (MIN_N = 8, "min_n": 5, timeout = 30) -- and drop the
 #    logic, calls, braces and embedded markup. Modular: a language that fits this
-#    shape (most do) just adds its extension here; a quirkier one gets its own fn. ─
+#    shape (most do) just adds its extension here; a quirkier one gets its own fn. -
 _COMMENT = re.compile(r"(?:^|\s)(?:#|//)\s?(\S.*)$")          # trailing # or // comment
 _STR = re.compile(r"""(['"])((?:\\.|(?!\1).){4,})\1""")       # quoted string, >=4 chars
 _CONST = re.compile(r"\b[A-Z][A-Z0-9_]{2,}\b")                # NAMED_CONSTANT token
@@ -93,7 +93,7 @@ def _code(text: str) -> List[Block]:
         s = ln.strip()
         if not s:
             continue
-        # a named gating/config/price constant: MIN_N = 8 · "min_n": 5 · MAX_SEATS: u32 = 50
+        # a named gating/config/price constant: MIN_N = 8, "min_n": 5, MAX_SEATS: u32 = 50
         if (_CONST.search(ln) and _NUM.search(ln)) or _JSON_NUM.search(ln):
             out.append((s, i, i))
             continue
@@ -104,11 +104,11 @@ def _code(text: str) -> List[Block]:
         parts.extend(sm.group(2).strip() for sm in _STR.finditer(ln))
         parts = [p for p in dict.fromkeys(parts) if p]
         if parts:
-            out.append((" · ".join(parts), i, i))
+            out.append((", ".join(parts), i, i))
     return out
 
 
-# ── html: visible text only; skip <script>/<style>/<head> ─────────────────────
+# -- html: visible text only; skip <script>/<style>/<head> ---------------------
 _HTML_SKIP = {"script", "style", "head", "noscript", "svg", "template"}
 _HTML_BLOCK = {"p", "div", "li", "td", "th", "h1", "h2", "h3", "h4", "h5", "h6",
                "section", "article", "tr", "blockquote", "figcaption", "caption", "button"}

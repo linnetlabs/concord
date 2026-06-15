@@ -1,4 +1,4 @@
-"""Concord CLI — the substrate every driver (human, skill, MCP) sits on.
+"""Concord CLI -- the substrate every driver (human, skill, MCP) sits on.
 
     concord lint  [--rules rules.yaml] [--scope public] [path]
     concord find  "<query>" [--scope public] [path]
@@ -34,7 +34,7 @@ def cmd_init(args) -> int:
         print("gitignore: added " + ", ".join(added))
     else:
         print("gitignore: already covers Concord's private files")
-    print("\nrules.yaml holds your real terms and is now gitignored — edit it, then run `concord lint`.")
+    print("\nrules.yaml holds your real terms and is now gitignored -- edit it, then run `concord lint`.")
     return 0
 
 
@@ -52,7 +52,7 @@ def cmd_lint(args) -> int:
     n_sem = len(rules.semantic_terms())
     print(
         f"\n{len(findings)} finding(s): {len(errors)} error, {len(findings) - len(errors)} warn"
-        + (f"  ({n_sem} semantic term(s) need `concord find` — not covered by lint)" if n_sem else ""),
+        + (f"  ({n_sem} semantic term(s) need `concord find` -- not covered by lint)" if n_sem else ""),
         file=sys.stderr,
     )
     return 1 if errors else 0
@@ -81,7 +81,7 @@ def cmd_index(args) -> int:
     idx.save(root, meta={"model": args.model, "commit": gitdiff.head(root)})
     from collections import Counter
     by_ext = Counter(Path(p.file).suffix.lower() or "(none)" for p in idx.passages)
-    breakdown = ", ".join(f"{n}×{e}" for e, n in by_ext.most_common())
+    breakdown = ", ".join(f"{n}x{e}" for e, n in by_ext.most_common())
     print(f"Indexed {len(idx.passages)} passage(s) [{breakdown}] -> {root}/.concord/", file=sys.stderr)
     return 0
 
@@ -135,7 +135,7 @@ def cmd_topics(args) -> int:
     root = Path(args.path)
     idx = Index.load(root)
     if idx.matrix is None:
-        print("No semantic index — run `concord index` first.", file=sys.stderr)
+        print("No semantic index -- run `concord index` first.", file=sys.stderr)
         return 1
     cl = _cluster.cluster(idx.matrix, [p.text for p in idx.passages], k_leaves=args.k, n_super=args.super)
 
@@ -154,7 +154,7 @@ def cmd_topics(args) -> int:
 
     if args.samples:
         # Emit representative passages per topic so an LLM/human driver can NAME them
-        # (the "spend a few tokens to describe the splits" path — naming stays with the driver).
+        # (the "spend a few tokens to describe the splits" path -- naming stays with the driver).
         import numpy as np
         cent = cl.leaf_centroids
         for leaf in sorted(range(cl.k), key=lambda l: -cl.sizes[l]):
@@ -184,7 +184,7 @@ def cmd_radar(args) -> int:
     from .index import Index
     idx = Index.load(args.path)
     if idx.matrix is None:
-        print("No semantic index — run `concord index` first.", file=sys.stderr)
+        print("No semantic index -- run `concord index` first.", file=sys.stderr)
         return 1
     conflicts = radar.find_conflicts(idx.passages, idx.matrix)["conflicts"][: args.max]
     if getattr(args, "since", None):  # PR-diff: only conflicts touching changed files
@@ -200,11 +200,11 @@ def cmd_radar(args) -> int:
         if not st["available"]:
             print("# --prose requires an LLM (set DEEPSEEK_API_KEY/ANTHROPIC_API_KEY/OPENAI_API_KEY)", file=sys.stderr)
         else:
-            print(f"# prose scan: using YOUR {st['provider']} API key ({st['model']}) — you pay for usage", file=sys.stderr)
+            print(f"# prose scan: using YOUR {st['provider']} API key ({st['model']}) -- you pay for usage", file=sys.stderr)
             prose_candidates = radar.find_prose_conflicts(idx.passages, idx.matrix, max_candidates=args.max)
             verdicts = V.verify_prose(prose_candidates)
             if verdicts is None:
-                print("# prose LLM judge failed — skipping prose results", file=sys.stderr)
+                print("# prose LLM judge failed -- skipping prose results", file=sys.stderr)
             else:
                 for c, d in zip(prose_candidates, verdicts):
                     if d.get("real"):
@@ -215,19 +215,19 @@ def cmd_radar(args) -> int:
         from . import llmlabel, verify as V
         st = llmlabel.status()
         if st["available"]:
-            print(f"# verifying with YOUR {st['provider']} API key ({st['model']}) — you pay for usage", file=sys.stderr)
+            print(f"# verifying with YOUR {st['provider']} API key ({st['model']}) -- you pay for usage", file=sys.stderr)
         verdicts = V.verify(conflicts)
         if verdicts is None:
-            print("# LLM verify unavailable (set ANTHROPIC_API_KEY/OPENAI_API_KEY) — showing raw candidates\n", file=sys.stderr)
+            print("# LLM verify unavailable (set ANTHROPIC_API_KEY/OPENAI_API_KEY) -- showing raw candidates\n", file=sys.stderr)
         else:
             real = [(c, d) for c, d in zip(conflicts, verdicts) if d.get("real")]
-            print(f"# {len(real)} CONFIRMED contradiction(s) of {len(verdicts)} candidate(s) — LLM-verified\n")
+            print(f"# {len(real)} CONFIRMED contradiction(s) of {len(verdicts)} candidate(s) -- LLM-verified\n")
             for c, d in real:
                 print(f"~ {' vs '.join(c['clash'])}  ->  canonical: {d.get('canonical')}   ({d.get('why', '')})")
                 print(f"    {c['a']['file']}:{c['a']['line']}")
                 print(f"    {c['b']['file']}:{c['b']['line']}")
             if prose_confirmed:
-                print(f"\n# {len(prose_confirmed)} prose contradiction(s) — LLM-confirmed\n")
+                print(f"\n# {len(prose_confirmed)} prose contradiction(s) -- LLM-confirmed\n")
                 for c in prose_confirmed:
                     print(f"~ [prose]  subject: {', '.join(c['subject'][:3])}   (sim {c['sim']})")
                     print(f"    {c['a']['file']}:{c['a']['line']}  {c['a']['text'][:80]}")
@@ -235,14 +235,14 @@ def cmd_radar(args) -> int:
                     print(f"    why: {c.get('why', '')}")
             return 0
 
-    print(f"# {len(conflicts)} value-conflict candidate(s) — same topic + same kind of number, different values")
+    print(f"# {len(conflicts)} value-conflict candidate(s) -- same topic + same kind of number, different values")
     print("# confirm each (add --verify to let an LLM judge + name the canonical value).\n")
     for c in conflicts:
         print(f"~ {' vs '.join(c['clash'])}   (sim {c['sim']}; subject: {', '.join(c['subject'][:3])})")
         print(f"    {c['a']['file']}:{c['a']['line']}")
         print(f"    {c['b']['file']}:{c['b']['line']}")
     if prose_confirmed:
-        print(f"\n# {len(prose_confirmed)} prose contradiction(s) — LLM-confirmed\n")
+        print(f"\n# {len(prose_confirmed)} prose contradiction(s) -- LLM-confirmed\n")
         for c in prose_confirmed:
             print(f"~ [prose]  subject: {', '.join(c['subject'][:3])}   (sim {c['sim']})")
             print(f"    {c['a']['file']}:{c['a']['line']}  {c['a']['text'][:80]}")
@@ -257,13 +257,13 @@ def cmd_resolve(args) -> int:
     root = str(Path(args.path).resolve())
     idx = Index.load(root)
     if idx.matrix is None:
-        print("No semantic index — run `concord index` first.", file=sys.stderr)
+        print("No semantic index -- run `concord index` first.", file=sys.stderr)
         return 1
     conflicts = radar.find_conflicts(idx.passages, idx.matrix)["conflicts"][: args.max]
     from . import llmlabel
     st = llmlabel.status()
     if st["available"]:
-        print(f"Verifying with YOUR {st['provider']} API key ({st['model']}) — you pay for usage.\n", file=sys.stderr)
+        print(f"Verifying with YOUR {st['provider']} API key ({st['model']}) -- you pay for usage.\n", file=sys.stderr)
     verdicts = V.verify(conflicts)
     if verdicts is None:
         print("resolve needs an LLM (set ANTHROPIC_API_KEY or OPENAI_API_KEY).", file=sys.stderr)
@@ -271,18 +271,18 @@ def cmd_resolve(args) -> int:
     real = [(c, d) for c, d in zip(conflicts, verdicts)
             if d.get("real") and d.get("canonical") and d.get("change") in ("a", "b")]
     if not real:
-        print("No confirmed, resolvable contradictions. ✅")
+        print("No confirmed, resolvable contradictions.")
         return 0
     print(f"{len(real)} confirmed contradiction(s). {'(auto-apply)' if args.apply else '(review each)'}\n")
     applied = 0
     for c, d in real:
         side, canon = d["change"], d["canonical"]
-        print(f"CONTRADICTION  {' vs '.join(c['clash'])}   — {d.get('why', '')}")
+        print(f"CONTRADICTION  {' vs '.join(c['clash'])}   -- {d.get('why', '')}")
         print(f"  A  {c['a']['file']}:{c['a']['line']}   {c['a']['values']}")
         print(f"  B  {c['b']['file']}:{c['b']['line']}   {c['b']['values']}")
         prev = V.apply_fix(root, side, canon, c, dry_run=True)
         if not prev:
-            print("  (could not locate the value to replace — skipping)\n")
+            print("  (could not locate the value to replace -- skipping)\n")
             continue
         f, ln, before, after = prev
         print(f"  canonical = {canon}; change side {side.upper()}:")
@@ -294,7 +294,7 @@ def cmd_resolve(args) -> int:
         if choice == "y":
             V.apply_fix(root, side, canon, c, dry_run=False)
             applied += 1
-            print("  ✓ applied\n")
+            print("  applied\n")
         else:
             print("  skipped\n")
     print(f"Resolved {applied} contradiction(s).")
@@ -337,7 +337,7 @@ def cmd_report(args) -> int:
             if args.verify:
                 from . import verify as V
                 verdicts = V.verify(conflicts)
-    except Exception:  # noqa: BLE001 — report still useful with just the lint
+    except Exception:  # noqa: BLE001 -- report still useful with just the lint
         pass
     repo = root.resolve().name or str(root)
     html = report.build(repo, datetime.date.today().isoformat(), findings, conflicts, verdicts)
@@ -352,12 +352,12 @@ def cmd_activity(args) -> int:
     if not files:
         print("No git activity in window (is this a git repo?).", file=sys.stderr)
         return 0
-    print(f"# dev activity since '{args.since}' — {len(files)} files touched\n")
+    print(f"# dev activity since '{args.since}' -- {len(files)} files touched\n")
     print("## hotspots (most churn = where effort goes):")
     for f in files[: args.max]:
-        print(f"  {f['churn']:6d} lines · {f['commits']}c · {f['authors']}a   {f['file']}")
+        print(f"  {f['churn']:6d} lines, {f['commits']}c, {f['authors']}a   {f['file']}")
     coll = sorted([f for f in files if f["authors"] >= 2], key=lambda x: (-x["authors"], -x["churn"]))
-    print(f"\n## collision risk — {len(coll)} file(s) touched by 2+ authors:")
+    print(f"\n## collision risk -- {len(coll)} file(s) touched by 2+ authors:")
     if not coll:
         print("  none (single author, or no concurrent edits in window).")
     for f in coll[: args.max]:
@@ -370,7 +370,7 @@ def cmd_graph(args) -> int:
     from .index import _DIR
     g = build_graph(args.path, write=not args.no_write)
     s = g["stats"]
-    print(f"# library graph — {s['files']} files, {s['links']} doc-links "
+    print(f"# library graph -- {s['files']} files, {s['links']} doc-links "
           f"({s['stale']} stale, {s['lagging']} lagging)")
     if not args.no_write:
         print(f"# wrote {str(args.path).rstrip('/')}/{_DIR}/graph.json (nodes + edges; a UI can consume it)")
@@ -384,7 +384,7 @@ def cmd_graph(args) -> int:
             print(f"  {n:3d} <-  {f}")
     lagging = [n for n in g["nodes"] if n["lagging"]]
     if lagging:
-        print(f"\n## lagging — last edited well before their graph neighbours ({len(lagging)}):")
+        print(f"\n## lagging -- last edited well before their graph neighbours ({len(lagging)}):")
         for n in lagging[: args.max]:
             print(f"  last {n['last'] or '?'}   {n['file']}")
     return 0
@@ -401,9 +401,9 @@ def cmd_ui(args) -> int:
         return 1
     from . import llmlabel
     st = llmlabel.status()
-    ai = f"AI: {st['provider']} {st['model']} (opt-in; your key, you pay)" if st["available"] else "AI: off (no key — search/topics/lint/radar are free)"
+    ai = f"AI: {st['provider']} {st['model']} (opt-in; your key, you pay)" if st["available"] else "AI: off (no key -- search/topics/lint/radar are free)"
     url = f"http://127.0.0.1:{args.port}"
-    print(f"Concord explorer → {url}   [{ai}]   (Ctrl+C to stop)", file=sys.stderr)
+    print(f"Concord explorer -> {url}   [{ai}]   (Ctrl+C to stop)", file=sys.stderr)
     webbrowser.open(url)
     try:
         srv.serve_forever()
@@ -427,7 +427,7 @@ def cmd_read(args) -> int:
             emb = get_embedder(Index.load(root).meta.get("model"))
             V = emb.embed([h.text for h in hits], kind="passage")
             facet = _cluster.facet_labels([h.text for h in hits], V)  # k auto-selected
-        except Exception:  # noqa: BLE001 — facets are a nicety; never block read
+        except Exception:  # noqa: BLE001 -- facets are a nicety; never block read
             facet = None
 
     n_facets = len(set(facet)) if facet else 0
@@ -484,7 +484,7 @@ def main(argv=None) -> int:
     sp.add_argument("path", nargs="?", default=".")
     sp.add_argument("-k", type=int, default=40, help="leaf clusters")
     sp.add_argument("--super", type=int, default=8, help="super-clusters (themes)")
-    sp.add_argument("--route", default=None, help="(experimental — underperforms flat retrieval) which cluster a query lands in")
+    sp.add_argument("--route", default=None, help="(experimental -- underperforms flat retrieval) which cluster a query lands in")
     sp.add_argument("--show", type=int, default=12, help="passages to show when routing")
     sp.add_argument("--samples", action="store_true", help="emit representative passages per topic for a driver to name them")
     sp.set_defaults(func=cmd_topics)

@@ -1,9 +1,9 @@
-"""Contradiction radar — same-topic passages that state DIFFERENT hard values.
+"""Contradiction radar -- same-topic passages that state DIFFERENT hard values.
 
 Catches the highest-value drift class deterministically: prices, thresholds,
 percentages and durations that disagree between semantically-near passages
-(e.g. "$49/seat" vs "$39/seat", "n ≥ 4" vs "n ≥ 8"). It is a CANDIDATE list —
-same-topic + different-number — for human review, not a proof of contradiction.
+(e.g. "$49/seat" vs "$39/seat", "n >= 4" vs "n >= 8"). It is a CANDIDATE list --
+same-topic + different-number -- for human review, not a proof of contradiction.
 The embedding decides "same topic"; a regex extracts the value; the conflict is
 where those two disagree.
 """
@@ -14,11 +14,11 @@ import re
 import numpy as np
 
 _TYPES = [
-    ("price", re.compile(r"\$\s?\d[\d,]*(?:\.\d+)?[kKmM]?")),          # $49 · $8,000 · $15k (suffix must attach)
-    ("threshold", re.compile(r"n\s?[≥><]=?\s?\d+", re.I)),            # n ≥ 8 · n>=4
+    ("price", re.compile(r"\$\s?\d[\d,]*(?:\.\d+)?[kKmM]?")),          # $49, $8,000, $15k (suffix must attach)
+    ("threshold", re.compile(r"n\s?[>=><]=?\s?\d+", re.I)),            # n >= 8, n>=4
     ("percent", re.compile(r"\b\d+(?:\.\d+)?\s?%")),                   # 30%
     ("duration", re.compile(r"\b\d+\s?(?:days?|months?|years?|weeks?)\b", re.I)),  # 30 days
-    # a named numeric constant in code/config — MIN_N = 8 · "min_n": 5 · maxSeats=100.
+    # a named numeric constant in code/config -- MIN_N = 8, "min_n": 5, maxSeats=100.
     # The identifier rides along in the value so a conflict reads NAME=v vs NAME=v'.
     ("config", re.compile(r"[A-Za-z_][A-Za-z0-9_]{2,}[\"']?\s*[:=]\s*[\"']?\$?\d[\d,]*(?:\.\d+)?")),
 ]
@@ -48,7 +48,7 @@ def _content(text: str) -> "frozenset[str]":
 
 
 def _conflicting(va: dict, vb: dict):
-    """Values of the SAME type that differ with no overlap (e.g. price↔price)."""
+    """Values of the SAME type that differ with no overlap (e.g. price<->price)."""
     out = []
     for t in set(va) & set(vb):
         if va[t] != vb[t] and not (va[t] & vb[t]):
@@ -57,12 +57,12 @@ def _conflicting(va: dict, vb: dict):
 
 
 def find_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbors: int = 6, max_conflicts: int = 60):
-    """Return {value_passages, conflicts:[{sim, a, b}]} — value-conflict CANDIDATES.
+    """Return {value_passages, conflicts:[{sim, a, b}]} -- value-conflict CANDIDATES.
 
-    A pair is a candidate when the two passages are semantically near (cosine ≥
+    A pair is a candidate when the two passages are semantically near (cosine >=
     threshold), **share a subject word**, are **not near-identical copies**, yet carry
     disjoint hard values. This is a review queue (same-topic + different-number), not a
-    verdict — a human or an LLM driver confirms which are real contradictions.
+    verdict -- a human or an LLM driver confirms which are real contradictions.
     """
     def _flat(v):
         return sorted(x for s in v.values() for x in s)
@@ -71,7 +71,7 @@ def find_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbors: int
     for i, p in enumerate(passages):
         # skip tool/hidden dirs (.claude, .planning). Passages here are already
         # extraction-cleaned, so code/config conflicts (MIN_N=8 vs "min_n":5) are
-        # in scope alongside prose — the extractor dropped the syntax noise.
+        # in scope alongside prose -- the extractor dropped the syntax noise.
         if any(part.startswith(".") for part in p.file.split("/")):
             continue
         v = _typed_values(p.text)
@@ -101,7 +101,7 @@ def find_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbors: int
             if not shared:
                 continue  # different subjects that merely both carry a number
             if union and len(shared) / len(union) > 0.9:
-                continue  # near-identical copies — not a contradiction
+                continue  # near-identical copies -- not a contradiction
             key = (min(rows[a], rows[b]), max(rows[a], rows[b]))
             if key in seen:
                 continue
@@ -121,7 +121,7 @@ def find_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbors: int
 
 
 def find_prose_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbors: int = 6, max_candidates: int = 30):
-    """Return same-topic pairs with NO numeric clash — candidates for LLM prose-contradiction judging.
+    """Return same-topic pairs with NO numeric clash -- candidates for LLM prose-contradiction judging.
 
     Reuses the same sim-matrix, shared-subject, and near-identical-copy gates as find_conflicts,
     but scans ALL non-hidden passages (not just those carrying typed values) and skips pairs that
@@ -162,7 +162,7 @@ def find_prose_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbor
             if not shared:
                 continue  # different subjects
             if union and len(shared) / len(union) > 0.9:
-                continue  # near-identical copies — not a contradiction
+                continue  # near-identical copies -- not a contradiction
             seen.add(key)
             pa, pb = passages[rows[a]], passages[rows[b]]
             candidates.append({

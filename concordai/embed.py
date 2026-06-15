@@ -1,10 +1,10 @@
-"""Embedding backend — sentiment.ai is THE embedder, not one option among many.
+"""Embedding backend -- sentiment.ai is THE embedder, not one option among many.
 
 Concord delegates *all* embedding to its sibling package, sentiment.ai
 (`import sentimentai`). That package already owns the model registry (e5 runs
 on-device by default; OpenAI is an opt-in paid backend), ships the trained heads,
 and carries the provenance/calibration that makes Concord's semantic results
-auditable. Concord deliberately does NOT choose its own embedding model — that
+auditable. Concord deliberately does NOT choose its own embedding model -- that
 decision lives in sentiment.ai so the two stay in lockstep and a Concord result is
 always reproducible against a known sentiment.ai version.
 

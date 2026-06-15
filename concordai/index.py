@@ -1,4 +1,4 @@
-"""Semantic index — embed passages once, search by cosine.
+"""Semantic index -- embed passages once, search by cosine.
 
 Small-corpus design: passages + a dense matrix persisted to `.concord/`. At repo
 scale (a few thousand passages) a numpy matmul is instant, so there is no faiss /
@@ -43,7 +43,7 @@ class Index:
         passages = list(chunk_repo(root, ruleset, prose=True))
         embedder = embedder or get_embedder()
         if not passages:
-            return cls(passages, None)  # nothing indexable — empty index, not a crash
+            return cls(passages, None)  # nothing indexable -- empty index, not a crash
         vecs = np.asarray(embedder.embed([p.text for p in passages], kind="passage"), dtype="float32")
         norms = np.linalg.norm(vecs, axis=1, keepdims=True)
         norms[norms == 0] = 1.0
@@ -93,7 +93,7 @@ class Index:
     def save(self, root: "str | Path", meta=None) -> None:
         d = Path(root) / _DIR
         d.mkdir(exist_ok=True)
-        # Self-ignore: the built index is a derived cache, never committed — and we
+        # Self-ignore: the built index is a derived cache, never committed -- and we
         # do this without touching the user's root .gitignore.
         (d / ".gitignore").write_text("*\n", encoding="utf-8")
         (d / "passages.json").write_text(

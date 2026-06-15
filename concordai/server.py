@@ -1,4 +1,4 @@
-"""concordai.server — the live explorer.
+"""concordai.server -- the live explorer.
 
 A tiny stdlib HTTP server (no framework, no Streamlit) that loads a built index +
 the sentiment.ai embedder once, then serves real semantic search / topic / passage
@@ -53,7 +53,7 @@ def _git_base(root: str) -> str:
 
 
 def drift(root: str, term: str, n: int = 25) -> list:
-    """Commits where `term` was added/removed (git pickaxe) — how a fact evolved."""
+    """Commits where `term` was added/removed (git pickaxe) -- how a fact evolved."""
     if not term.strip():
         return []
     try:
@@ -76,8 +76,8 @@ def _load(root: str) -> None:
     from .index import Index
     idx = Index.load(root)
     if idx.matrix is None:
-        raise RuntimeError(f"No semantic index at {root}/.concord — run `concord index {root}` first.")
-    # ~tokens to read the WHOLE corpus into context — the naive baseline Concord avoids.
+        raise RuntimeError(f"No semantic index at {root}/.concord -- run `concord index {root}` first.")
+    # ~tokens to read the WHOLE corpus into context -- the naive baseline Concord avoids.
     # chars/4 is the standard rough token proxy; honest, model-agnostic, computed once.
     corpus_tokens = sum(len(p.text) for p in idx.passages) // 4
     _STATE.update(root=root, idx=idx, emb=get_embedder(idx.meta.get("model")), cl=None,
@@ -131,9 +131,9 @@ class _Handler(BaseHTTPRequestHandler):
             repo = os.path.basename(_STATE["root"].rstrip("/")) or _STATE["root"]
             from collections import Counter
             exts = Counter(os.path.splitext(p.file)[1].lower() or "?" for p in idx.passages)
-            types = " · ".join(f"{n}×{e}" for e, n in exts.most_common(12))
+            types = ", ".join(f"{n}x{e}" for e, n in exts.most_common(12))
             html = (html.replace("__REPO__", repo).replace("__N__", f"{len(idx.passages):,}")
-                        .replace("__TYPES__", types or "—")
+                        .replace("__TYPES__", types or "--")
                         .replace("__GHBASE__", _STATE.get("ghbase", "")))
             return self._send(html.encode(), "text/html; charset=utf-8")
 
@@ -178,7 +178,7 @@ class _Handler(BaseHTTPRequestHandler):
             # topic labels: clean LLM names (best-effort, cached) else tf-idf keyword bags
             leaf_labels = list(cl.leaf_labels)
             super_labels = list(cl.super_labels)
-            # LLM labels are OPT-IN (?llm=1) — they call the user's PAID API. A cached
+            # LLM labels are OPT-IN (?llm=1) -- they call the user's PAID API. A cached
             # result (already paid) is reused for free regardless.
             want_llm = q.get("llm", ["0"])[0] == "1"
             cache, ck = _STATE.setdefault("label_cache", {}), str(cl.k)
@@ -240,7 +240,7 @@ class _Handler(BaseHTTPRequestHandler):
         if u.path == "/api/llm/set":
             from . import llmlabel
             llmlabel.set_provider(q.get("provider", ["auto"])[0])
-            _STATE["label_cache"] = {}  # provider changed — re-name on demand with the new one
+            _STATE["label_cache"] = {}  # provider changed -- re-name on demand with the new one
             return self._json(llmlabel.status())
 
         if u.path == "/api/verify":

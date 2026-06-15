@@ -1,10 +1,10 @@
-"""Passage chunking — turn files into citable passages.
+"""Passage chunking -- turn files into citable passages.
 
 Two modes:
 - raw (default): split on blank lines, oversized blocks capped. The leak-lint uses
-  this — it must see every byte, so a codename can't hide in markup or a string.
-- prose (`prose=True`): structure-aware extraction via `extract.py` — visible HTML
-  text, code comments/strings/gating constants, config values — the meaningful units
+  this -- it must see every byte, so a codename can't hide in markup or a string.
+- prose (`prose=True`): structure-aware extraction via `extract.py` -- visible HTML
+  text, code comments/strings/gating constants, config values -- the meaningful units
   the semantic index and contradiction radar should reason over. The index uses this.
 
 Either way every passage keeps its file:line span, so a hit is citable like grep.

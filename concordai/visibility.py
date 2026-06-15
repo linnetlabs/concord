@@ -21,13 +21,13 @@ def _glob_to_regex(glob: str) -> "re.Pattern[str]":
         c = glob[i]
         if c == "*":
             if i + 1 < n and glob[i + 1] == "*":
-                # ** — span across separators (and an optional trailing slash)
+                # ** -- span across separators (and an optional trailing slash)
                 out.append(".*")
                 i += 2
                 if i < n and glob[i] == "/":
                     i += 1
                 continue
-            out.append("[^/]*")  # * — within a single segment
+            out.append("[^/]*")  # * -- within a single segment
         elif c == "?":
             out.append("[^/]")
         else:

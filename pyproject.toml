@@ -18,13 +18,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Semantic find / read. The embedder is sentiment.ai v2 — the single backend, no fallback.
+# Semantic find / read. The embedder is sentiment.ai v2 -- the single backend, no fallback.
 embeddings = [
     "numpy>=1.21",
     "sentimentai-py>=2.0.0",
     "scikit-learn>=1.0",
 ]
-# dev/CI: deterministic fake embedders, so no sentimentai-py needed — CI stays green.
+# dev/CI: deterministic fake embedders, so no sentimentai-py needed -- CI stays green.
 dev = ["pytest>=7", "numpy>=1.21", "scikit-learn>=1.0"]
 
 [project.scripts]

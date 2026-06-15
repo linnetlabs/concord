@@ -1,9 +1,9 @@
-"""Optional LLM cluster naming — clean topic names instead of tf-idf keyword bags.
+"""Optional LLM cluster naming -- clean topic names instead of tf-idf keyword bags.
 
 Best-effort and dependency-free: if ANTHROPIC_API_KEY (or OPENAI_API_KEY) is set, name
 every cluster from a few representative passages in ONE batched call via stdlib urllib.
 On no key / any error, returns None and the caller keeps its deterministic tf-idf label.
-This is the "grounded AI" the tool is about — the model names what retrieval found.
+This is the "grounded AI" the tool is about -- the model names what retrieval found.
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import urllib.request
 def _prompt(samples) -> str:
     blocks = []
     for i, s in enumerate(samples):
-        joined = "  ·  ".join(t.replace("\n", " ")[:160] for t in s[:3])
+        joined = " ,  ".join(t.replace("\n", " ")[:160] for t in s[:3])
         blocks.append(f"{i}: {joined}")
     return (
         "Each numbered item is a cluster of passages from one repository. Give each a "
@@ -48,7 +48,7 @@ def _post(url, headers, body):
 # cheap-by-design, and DeepSeek runs it at a fraction of OpenAI/Anthropic cost with no quality loss
 # on this kind of constrained JSON judging. Auto falls through to the next available key if no
 # DeepSeek key is set. All but Anthropic/Gemini are OpenAI-compatible chat APIs. The API KEY IS THE
-# USER'S — they pay for usage.
+# USER'S -- they pay for usage.
 PROVIDERS = [
     {"name": "deepseek", "label": "DeepSeek", "env": ["DEEPSEEK_API_KEY"],
      "model": "deepseek-chat", "kind": "openai", "url": "https://api.deepseek.com/chat/completions"},
@@ -142,7 +142,7 @@ def _llm(prompt: str, max_tokens: int = 900):
 
 
 def label_clusters(samples):
-    """samples: list[list[str]] — returns list[str] names (same length) or None."""
+    """samples: list[list[str]] -- returns list[str] names (same length) or None."""
     if not samples:
         return None
     raw = _llm(_prompt(samples), 700)

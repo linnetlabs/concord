@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Concord Explorer — __REPO__</title>
+<title>Concord Explorer -- __REPO__</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -94,8 +94,8 @@ a.fl:hover{text-decoration:underline}
 </head>
 <body>
 <div class="top"><div class="wrap">
-  <a class="brand" href="#"><span class="dot"></span>Concord <small>explorer · <a href="https://linnetlabs.org" target="_blank" rel="noopener">by Linnet Labs</a></small></a>
-  <span class="repo"><b>__REPO__</b> · <span title="Indexed file types (extraction-cleaned): __TYPES__" style="cursor:help;border-bottom:1px dotted var(--border)">__N__ passages</span><span class="aip off" id="aistatus" title="Optional AI features use YOUR API key — you pay for usage.">AI …</span><button class="gear" id="gear" title="AI provider settings">⚙</button></span>
+  <a class="brand" href="#"><span class="dot"></span>Concord <small>explorer, <a href="https://linnetlabs.org" target="_blank" rel="noopener">by Linnet Labs</a></small></a>
+  <span class="repo"><b>__REPO__</b>, <span title="Indexed file types (extraction-cleaned): __TYPES__" style="cursor:help;border-bottom:1px dotted var(--border)">__N__ passages</span><span class="aip off" id="aistatus" title="Optional AI features use YOUR API key -- you pay for usage.">AI ...</span><button class="gear" id="gear" title="AI provider settings">settings</button></span>
   <div class="tabs">
     <button class="tab on" data-t="search">Search</button>
     <button class="tab" data-t="topics">Topics</button>
@@ -106,32 +106,32 @@ a.fl:hover{text-decoration:underline}
 
 <div class="settings hide" id="settings">
   <div class="st-h">AI provider</div>
-  <div class="st-sub">Optional (verify · name topics) — your key, you pay. Auto picks the best available.</div>
+  <div class="st-sub">Optional (verify, name topics) -- your key, you pay. Auto picks the best available.</div>
   <div id="provlist"></div>
 </div>
 
 <main class="wrap">
   <section id="v-search">
     <div class="kicker">Ask your repo</div>
-    <h2 class="hsec">Find the exact lines — <span class="accent">cited to file:line</span></h2>
+    <h2 class="hsec">Find the exact lines -- <span class="accent">cited to file:line</span></h2>
     <div class="ask">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg>
-      <input id="q" placeholder="Ask your repo — e.g. what have we said about pricing?" autocomplete="off">
+      <input id="q" placeholder="Ask your repo -- e.g. what have we said about pricing?" autocomplete="off">
     </div>
     <div class="row">
       <label class="toggle"><input type="checkbox" id="facets"> tag by facet</label>
       <button class="btn" id="copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>copy link</button>
       <span class="muted" id="count" style="font-size:13px"></span>
     </div>
-    <textarea class="also" id="also" placeholder="extra phrasings (one per line) — recovers passages a single wording misses"></textarea>
+    <textarea class="also" id="also" placeholder="extra phrasings (one per line) -- recovers passages a single wording misses"></textarea>
     <div class="cards" id="cards"></div>
-    <div class="empty" id="empty">Ask a question to retrieve the exact passages — cited to file:line.</div>
+    <div class="empty" id="empty">Ask a question to retrieve the exact passages -- cited to file:line.</div>
   </section>
 
   <section id="v-topics" class="hide">
     <div class="kicker">Orientation</div>
     <h2 class="hsec">A map of <span class="accent">everything you've written</span></h2>
-    <div class="row"><span class="muted" id="tnote">Clustering passages… first load can take a few seconds.</span><button class="btn btn-ai" id="namebtn" style="margin-left:auto" title="Names topics with AI — calls your API key (you pay).">✦ Name with AI</button></div>
+    <div class="row"><span class="muted" id="tnote">Clustering passages... first load can take a few seconds.</span><button class="btn btn-ai" id="namebtn" style="margin-left:auto" title="Names topics with AI -- calls your API key (you pay).">Name with AI</button></div>
     <div class="tgrid">
       <div id="tree"></div>
       <div class="inspect" id="inspect"><div class="empty" style="padding:24px 0">Click a file in the map to read its passages.</div></div>
@@ -141,14 +141,14 @@ a.fl:hover{text-decoration:underline}
   <section id="v-radar" class="hide">
     <div class="kicker">Consistency</div>
     <h2 class="hsec">Contradiction radar</h2>
-    <div class="rhead"><b id="rcount">…</b><span class="muted" id="rsub"></span><button class="btn btn-ai" id="vbtn" style="margin-left:auto" title="LLM-judges each candidate — calls your API key (you pay).">✦ Verify with AI</button></div>
-    <p class="muted" style="margin:2px 2px 14px;font-size:13.5px">Where your docs state the <span style="color:var(--fg-2)">same thing two different ways</span> — likely contradictions (same topic, same kind of value, different number). The engine flags them; you (or your LLM) confirm.</p>
-    <div id="conflicts"><div class="empty"><span class="spin"></span> scanning for contradictions…</div></div>
+    <div class="rhead"><b id="rcount">...</b><span class="muted" id="rsub"></span><button class="btn btn-ai" id="vbtn" style="margin-left:auto" title="LLM-judges each candidate -- calls your API key (you pay).">Verify with AI</button></div>
+    <p class="muted" style="margin:2px 2px 14px;font-size:13.5px">Where your docs state the <span style="color:var(--fg-2)">same thing two different ways</span> -- likely contradictions (same topic, same kind of value, different number). The engine flags them; you (or your LLM) confirm.</p>
+    <div id="conflicts"><div class="empty"><span class="spin"></span> scanning for contradictions...</div></div>
   </section>
   <section id="v-activity" class="hide">
     <div class="kicker">Where the effort goes</div>
     <h2 class="hsec">Activity &amp; <span class="accent">collision</span> heatmap</h2>
-    <p class="muted" id="anote" style="margin:2px 2px 14px;font-size:13.5px">Tile size = lines changed (effort) · colour = how many authors touched it (green → red as more people edit the same file).</p>
+    <p class="muted" id="anote" style="margin:2px 2px 14px;font-size:13.5px">Tile size = lines changed (effort), colour = how many authors touched it (green -> red as more people edit the same file).</p>
     <div class="seg" style="margin:0 2px 12px"><button class="on" id="m-coll">Collision risk</button><button id="m-act">Dev activity</button></div>
     <div id="atree" style="height:480px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2)"></div>
     <div id="acoll" style="margin-top:14px"></div>
@@ -182,9 +182,9 @@ async function search(){
   if(r.corpus_tokens&&r.read_tokens!=null){
     const cut=Math.max(0,(1-r.read_tokens/r.corpus_tokens)*100);
     $('#count').innerHTML=`<span class="tok"><span class="muted">read</span> <b>~${kfmt(r.read_tokens)}</b> <span class="muted">tokens, not</span> <s>~${kfmt(r.corpus_tokens)}</s> <span class="tcut">${cut.toFixed(cut>=99.9?2:1)}% less to read</span></span>`
-      +` <span class="muted" style="margin-left:8px">· ${(r.hits||[]).length} passages, cited to file:line</span>`;
+      +` <span class="muted" style="margin-left:8px">- ${(r.hits||[]).length} passages, cited to file:line</span>`;
   } else {
-    $('#count').textContent=(r.hits||[]).length+' passages · read top-down, stop when relevance fades';
+    $('#count').textContent=(r.hits||[]).length+' passages, read top-down, stop when relevance fades';
   }
   if(!r.hits||!r.hits.length){$('#cards').innerHTML='<div class="empty">No matches'+(r.error?' (error)':'')+'.</div>';return;}
   $('#cards').innerHTML=r.hits.map((h,i)=>`<div class="card ${h.type}" style="animation-delay:${i*40}ms">
@@ -204,8 +204,8 @@ if(dq.get('tab')){const b=[...document.querySelectorAll('.tab')].find(x=>x.datas
 /* topics */
 async function loadTopics(useLLM){
   const r=await fetch('/api/topics?k=28&s=6'+(useLLM?'&llm=1':'')).then(r=>r.json());const N=r.nodes;
-  $('#tnote').textContent=`${N.filter(n=>n.id[0]==='L').length} topics${r.llm?' · AI-named':' · keyword labels'} · click to zoom, click a file to inspect`;
-  if(r.llm)$('#namebtn').textContent='✓ AI-named';
+  $('#tnote').textContent=`${N.filter(n=>n.id[0]==='L').length} topics${r.llm?', AI-named':', keyword labels'}, click to zoom, click a file to inspect`;
+  if(r.llm)$('#namebtn').textContent='AI-named';
   Plotly.newPlot('tree',[{type:'treemap',ids:N.map(n=>n.id),labels:N.map(n=>n.label),parents:N.map(n=>n.parent),values:N.map(n=>n.value),
     branchvalues:'remainder',maxdepth:2,tiling:{pad:2},marker:{colorscale:[[0,'#11283f'],[.5,'#16324d'],[1,'#1f6feb']],line:{width:1,color:'#0a0f1c'}},
     hovertemplate:'<b>%{label}</b><br>%{value} passages<extra></extra>',textfont:{family:'JetBrains Mono',size:12,color:'#eaf1fb'}}],
@@ -215,7 +215,7 @@ async function loadTopics(useLLM){
 async function inspect(leaf,file){
   $('#inspect').innerHTML='<div class="empty" style="padding:24px 0"><span class="spin"></span></div>';
   const r=await fetch('/api/passages?leaf='+leaf+'&file='+encodeURIComponent(file)).then(r=>r.json());
-  $('#inspect').innerHTML=`<h4>${esc(file.split('/').pop())}</h4><div class="sub">${esc(file)} · ${r.passages.length} passages</div>`+
+  $('#inspect').innerHTML=`<h4>${esc(file.split('/').pop())}</h4><div class="sub">${esc(file)}, ${r.passages.length} passages</div>`+
     r.passages.map(p=>`<div class="ipass">${fl(p.file,p.line)}<div class="snip">${esc(p.text)}</div></div>`).join('');
 }
 
@@ -227,17 +227,17 @@ function cardHTML(c,i,d){
   if(d && !d.real) return '';
   const ok = d && d.real;
   const tag = ok
-    ? `<span class="tag ok">✓ confirmed · ${c.clash.map(esc).join(' vs ')}</span>`
-    : `<span class="tag">${WARN_SVG} contradiction · ${c.clash.map(esc).join(' vs ')}</span>`;
-  const canon = (ok && d.canonical) ? `<div class="canon">canonical: <b>${esc(d.canonical)}</b> — ${esc(d.why||'')}</div>` : '';
-  return `<div class="conflict" style="animation-delay:${i*30}ms">${tag}<span class="subj">${esc((c.subject||[]).join(' · '))}</span>${canon}
+    ? `<span class="tag ok">confirmed, ${c.clash.map(esc).join(' vs ')}</span>`
+    : `<span class="tag">${WARN_SVG} contradiction, ${c.clash.map(esc).join(' vs ')}</span>`;
+  const canon = (ok && d.canonical) ? `<div class="canon">canonical: <b>${esc(d.canonical)}</b> -- ${esc(d.why||'')}</div>` : '';
+  return `<div class="conflict" style="animation-delay:${i*30}ms">${tag}<span class="subj">${esc((c.subject||[]).join(', '))}</span>${canon}
     <div class="pair"><div class="c">${fl(c.a.file,c.a.line)}<div class="snip">${hl(c.a.text,c.clash)}</div></div>
       <div class="c">${fl(c.b.file,c.b.line)}<div class="snip">${hl(c.b.text,c.clash)}</div></div></div>
     <div style="margin-top:9px"><button class="btn" onclick="hist(this,'${esc(c.clash[0]||'').replace(/'/g,"")}')">git history of ${esc(c.clash[0]||'')}</button><div class="hist"></div></div></div>`;
 }
 function renderRadar(verdicts){
   const items=RADAR.map((c,i)=>cardHTML(c,i,verdicts?verdicts[i]:null)).filter(Boolean);
-  $('#conflicts').innerHTML=items.length?items.join(''):'<div class="empty">No contradictions found. ✅</div>';
+  $('#conflicts').innerHTML=items.length?items.join(''):'<div class="empty">No contradictions found.</div>';
 }
 async function loadRadar(){
   const r=await fetch('/api/radar').then(r=>r.json()); RADAR=r.conflicts;
@@ -246,13 +246,13 @@ async function loadRadar(){
   renderRadar(null);
 }
 async function verifyRadar(){
-  const b=$('#vbtn'); b.textContent='verifying…';
+  const b=$('#vbtn'); b.textContent='verifying...';
   const r=await fetch('/api/verify').then(r=>r.json());
   if(!r.verdicts){b.textContent='needs an API key'; return;}
   const real=r.verdicts.filter(v=>v&&v.real).length;
   $('#rcount').textContent=real+' confirmed contradiction'+(real===1?'':'s');
-  $('#rsub').textContent=`of ${r.verdicts.length} candidates · LLM-verified`;
-  renderRadar(r.verdicts); b.textContent='✓ verified';
+  $('#rsub').textContent=`of ${r.verdicts.length} candidates, LLM-verified`;
+  renderRadar(r.verdicts); b.textContent='verified';
 }
 $('#vbtn').onclick=verifyRadar;
 let ATREE=[];
@@ -265,12 +265,12 @@ function renderActivity(mode){
     values:N.map(n=>n.churn),branchvalues:'total',maxdepth:3,tiling:{pad:2},
     marker:{colors:N.map(n=>coll?n.authors:n.commits),colorscale:[[0,'#0f9d58'],[0.5,'#fbbf24'],[1,'#f87171']],cmin:1,cmax:cmax,showscale:false,line:{width:1,color:'#0a0f1c'}},
     customdata:N.map(n=>[n.commits,n.authors]),
-    hovertemplate:'<b>%{label}</b><br>%{value} lines · %{customdata[0]} commits · %{customdata[1]} author(s)<extra></extra>',
+    hovertemplate:'<b>%{label}</b><br>%{value} lines, %{customdata[0]} commits, %{customdata[1]} author(s)<extra></extra>',
     textfont:{family:'JetBrains Mono',size:11,color:'#eaf1fb'}}],
     {margin:{t:6,l:6,r:6,b:6},paper_bgcolor:'rgba(0,0,0,0)',font:{color:'#eaf1fb'}},{displayModeBar:false,responsive:true});
   $('#anote').textContent=coll
-    ?'Tile size = lines changed · colour = how many authors touched it (green → red as more people edit the same file).'
-    :'Tile size = lines changed · colour = commit frequency (green → red the more often a file is changed).';
+    ?'Tile size = lines changed, colour = how many authors touched it (green -> red as more people edit the same file).'
+    :'Tile size = lines changed, colour = commit frequency (green -> red the more often a file is changed).';
 }
 function setMode(m){document.getElementById('m-coll').classList.toggle('on',m==='collision');document.getElementById('m-act').classList.toggle('on',m==='activity');renderActivity(m);}
 async function loadActivity(){
@@ -279,24 +279,24 @@ async function loadActivity(){
   renderActivity('collision');
   document.getElementById('m-coll').onclick=()=>setMode('collision');
   document.getElementById('m-act').onclick=()=>setMode('activity');
-  $('#acoll').innerHTML=r.collisions?`<div class="conflict"><span class="tag">collision risk · ${r.collisions} file(s) touched by 2+ authors</span></div>`
-    :'<div class="muted" style="font-size:13px;padding:6px 2px">No collisions in window — single author or no concurrent edits.</div>';
+  $('#acoll').innerHTML=r.collisions?`<div class="conflict"><span class="tag">collision risk, ${r.collisions} file(s) touched by 2+ authors</span></div>`
+    :'<div class="muted" style="font-size:13px;padding:6px 2px">No collisions in window -- single author or no concurrent edits.</div>';
 }
-$('#namebtn').onclick=()=>{if($('#namebtn').disabled)return;$('#namebtn').textContent='naming… (your key)';loadTopics(true);};
-// AI provider status + selector — optional AI bills the USER's key
+$('#namebtn').onclick=()=>{if($('#namebtn').disabled)return;$('#namebtn').textContent='naming... (your key)';loadTopics(true);};
+// AI provider status + selector -- optional AI bills the USER's key
 function applyLLM(s){
   const el=$('#aistatus'), on=s.available;
   el.className='aip '+(on?'on':'off');
-  el.textContent=on?('AI: '+s.model):(s.disabled?'AI off':'AI · no key');
-  el.title=on?('Optional features call YOUR '+s.provider+' API key — you pay. Click ⚙ to switch provider.')
+  el.textContent=on?('AI: '+s.model):(s.disabled?'AI off':'AI, no key');
+  el.title=on?('Optional features call YOUR '+s.provider+' API key -- you pay. Click settings to switch provider.')
             :'AI features off. Search, topics, lint and radar stay free.';
   ['vbtn','namebtn'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=!on;b.style.opacity=on?1:.45;}});
 }
 function renderSettings(s){
-  const opts=[{name:'auto',label:'Auto (best available)',model:''}].concat(s.providers||[],[{name:'off',label:'Off — deterministic, free',model:''}]);
+  const opts=[{name:'auto',label:'Auto (best available)',model:''}].concat(s.providers||[],[{name:'off',label:'Off -- deterministic, free',model:''}]);
   const cur=s.disabled?'off':(s.provider||'auto');
   let html=opts.map(p=>`<label class="prov"><input type="radio" name="prov" value="${p.name}" ${p.name===cur?'checked':''}><span>${esc(p.label)}</span><span class="m">${esc(p.model||'')}</span></label>`).join('');
-  if(!(s.providers&&s.providers.length)) html+='<div class="st-sub" style="margin-top:9px">No keys in env. Set one of: ANTHROPIC_API_KEY · OPENAI_API_KEY · DEEPSEEK_API_KEY · GROQ_API_KEY · MISTRAL_API_KEY · OPENROUTER_API_KEY · GEMINI_API_KEY</div>';
+  if(!(s.providers&&s.providers.length)) html+='<div class="st-sub" style="margin-top:9px">No keys in env. Set one of: ANTHROPIC_API_KEY, OPENAI_API_KEY, DEEPSEEK_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY, OPENROUTER_API_KEY, GEMINI_API_KEY</div>';
   $('#provlist').innerHTML=html;
   $('#provlist').querySelectorAll('input').forEach(i=>i.onchange=()=>setProvider(i.value));
 }

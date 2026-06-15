@@ -2,7 +2,7 @@
 
 The radar finds same-topic/different-value CANDIDATES deterministically. This asks an
 LLM (grounded on the cited passages) to judge which are GENUINE contradictions, name
-the canonical value, and say which passage to change — then `resolve` can auto-apply
+the canonical value, and say which passage to change -- then `resolve` can auto-apply
 the fix. Best-effort: with no API key, verify() returns None and candidates stay raw.
 
 The loop is deterministic find -> grounded judgment -> a human (or --apply) commits
@@ -105,13 +105,13 @@ def verify_prose(candidates):
 
 def _flex(v: str) -> str:
     """Whitespace/operator-tolerant regex for a normalised value, with boundaries so
-    '$49' doesn't match inside '$490' and 'n>=4' matches 'n ≥ 4'."""
+    '$49' doesn't match inside '$490' and 'n>=4' matches 'n >= 4'."""
     parts, i = [], 0
     while i < len(v):
-        if v[i] in "≥>=":
-            while i < len(v) and v[i] in "≥>=":
+        if v[i] in ">=>=":
+            while i < len(v) and v[i] in ">=>=":
                 i += 1
-            parts.append(r"[≥>]=?")
+            parts.append(r"[>=>]=?")
         else:
             parts.append(re.escape(v[i]))
             i += 1

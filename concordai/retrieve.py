@@ -1,4 +1,4 @@
-"""Adaptive read-depth — decide how far down a similarity ranking to read.
+"""Adaptive read-depth -- decide how far down a similarity ranking to read.
 
 The token-efficiency core. Fixed top-k either over-reads easy queries or
 under-reads broad ones; these functions right-size the context per query.
@@ -9,7 +9,7 @@ Three judges, in cost order:
   - (callable) : inject an LLM- or human-relevance judge for the marginal band
 
 `mmr` re-ranks to avoid reading near-duplicate restatements of the same point.
-All functions operate on plain similarity scores / vectors — no I/O.
+All functions operate on plain similarity scores / vectors -- no I/O.
 """
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ def adaptive_take(
     """Walk a ranked list, stopping when relevance dies.
 
     Without a `judge`, the geometric elbow decides (no model calls). With one,
-    read until `patience` consecutive items are judged irrelevant — never stop on
+    read until `patience` consecutive items are judged irrelevant -- never stop on
     a single off-topic neighbour, which is brittle to false neighbours.
     """
     if max_k is not None:
