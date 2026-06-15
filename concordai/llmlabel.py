@@ -43,15 +43,19 @@ def _post(url, headers, body):
     return json.loads(urllib.request.urlopen(req, timeout=40).read())
 
 
-# Provider registry, in preference order (best judge first). All but Anthropic/Gemini
-# are OpenAI-compatible chat APIs. The API KEY IS THE USER'S — they pay for usage.
+# Provider registry, in preference order. DeepSeek is FIRST so it is the default whenever
+# DEEPSEEK_API_KEY is present: concord's LLM use (verify/label/resolve judging) is frequent and
+# cheap-by-design, and DeepSeek runs it at a fraction of OpenAI/Anthropic cost with no quality loss
+# on this kind of constrained JSON judging. Auto falls through to the next available key if no
+# DeepSeek key is set. All but Anthropic/Gemini are OpenAI-compatible chat APIs. The API KEY IS THE
+# USER'S — they pay for usage.
 PROVIDERS = [
+    {"name": "deepseek", "label": "DeepSeek", "env": ["DEEPSEEK_API_KEY"],
+     "model": "deepseek-chat", "kind": "openai", "url": "https://api.deepseek.com/chat/completions"},
     {"name": "anthropic", "label": "Anthropic (Claude)", "env": ["ANTHROPIC_API_KEY"],
      "model": "claude-haiku-4-5-20251001", "kind": "anthropic", "url": "https://api.anthropic.com/v1/messages"},
     {"name": "openai", "label": "OpenAI", "env": ["OPENAI_API_KEY"],
      "model": "gpt-4o-mini", "kind": "openai", "url": "https://api.openai.com/v1/chat/completions"},
-    {"name": "deepseek", "label": "DeepSeek", "env": ["DEEPSEEK_API_KEY"],
-     "model": "deepseek-chat", "kind": "openai", "url": "https://api.deepseek.com/chat/completions"},
     {"name": "groq", "label": "Groq", "env": ["GROQ_API_KEY"],
      "model": "llama-3.3-70b-versatile", "kind": "openai", "url": "https://api.groq.com/openai/v1/chat/completions"},
     {"name": "mistral", "label": "Mistral", "env": ["MISTRAL_API_KEY"],
