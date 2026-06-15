@@ -1,0 +1,32 @@
+# Concord pre-commit hooks. In a consuming repo's .pre-commit-config.yaml:
+#
+#   repos:
+#     - repo: https://github.com/linnetlabs/concord
+#       rev: v0.0.1
+#       hooks:
+#         - id: concord-lint            # block a banned codename reaching a public file
+#         - id: concord-radar           # block a same-topic value contradiction (numeric)
+#
+- id: concord-lint
+  name: concord lint (codename leak guard)
+  description: Fail if a banned/internal term reaches a public file.
+  entry: concord lint . --scope public
+  language: python
+  pass_filenames: false
+  always_run: true
+
+- id: concord-radar
+  name: concord radar (value contradictions)
+  description: Fail if two passages state the same fact with different values.
+  entry: concord radar . --fail-on conflict
+  language: python
+  pass_filenames: false
+  always_run: true
+
+- id: concord-graph-lagging
+  name: concord graph (lagging docs)
+  description: Fail if a doc lags the code it links to (stale documentation guard).
+  entry: concord graph . --fail-on-lagging
+  language: python
+  pass_filenames: false
+  always_run: true

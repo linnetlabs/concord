@@ -257,6 +257,18 @@ class _Handler(BaseHTTPRequestHandler):
         if u.path == "/api/drift":
             return self._json({"commits": drift(_STATE["root"], q.get("term", [""])[0])})
 
+        if u.path == "/api/graph":
+            from . import graph as G
+            if _STATE.get("graph") is None:
+                _STATE["graph"] = G.graph(_STATE["root"], write=True)
+            return self._json(_STATE["graph"])
+
+        if u.path == "/api/coverage":
+            from . import graph as G
+            if _STATE.get("graph") is None:
+                _STATE["graph"] = G.graph(_STATE["root"], write=True)
+            return self._json(G.coverage(_STATE["root"], _STATE["graph"]))
+
         self.send_response(404)
         self.end_headers()
 

@@ -179,6 +179,17 @@ def cmd_topics(args) -> int:
     return 0
 
 
+def _radar_exit(args, conflicts, real) -> int:
+    """Exit code for CI. --fail-on conflict: nonzero if any candidate; --fail-on verified:
+    nonzero only if the LLM confirmed a real one. Default 'none' always returns 0."""
+    mode = getattr(args, "fail_on", "none")
+    if mode == "conflict" and conflicts:
+        return 2
+    if mode == "verified" and real:
+        return 2
+    return 0
+
+
 def cmd_radar(args) -> int:
     from . import radar
     from .index import Index
@@ -191,6 +202,13 @@ def cmd_radar(args) -> int:
         from . import gitdiff
         changed = set(gitdiff.changed_files(Path(args.path), since=args.since)[0])
         conflicts = [c for c in conflicts if c["a"]["file"] in changed or c["b"]["file"] in changed]
+
+    # canonical suggestion from git freshness (deterministic: which side is the drifted copy)
+    try:
+        from .graph import graph as _bg, freshness_map as _fm
+        radar.annotate_canonical(conflicts, _fm(_bg(args.path, write=False)))
+    except Exception:  # noqa: BLE001 -- a suggestion is a bonus; never block the radar
+        pass
 
     # prose mode: LLM-judge same-topic pairs with no numeric clash
     prose_confirmed = []
@@ -233,14 +251,16 @@ def cmd_radar(args) -> int:
                     print(f"    {c['a']['file']}:{c['a']['line']}  {c['a']['text'][:80]}")
                     print(f"    {c['b']['file']}:{c['b']['line']}  {c['b']['text'][:80]}")
                     print(f"    why: {c.get('why', '')}")
-            return 0
+            return _radar_exit(args, conflicts, real)
 
     print(f"# {len(conflicts)} value-conflict candidate(s) -- same topic + same kind of number, different values")
-    print("# confirm each (add --verify to let an LLM judge + name the canonical value).\n")
+    print("# confirm each (--verify lets an LLM judge; the -> line is a deterministic git-freshness guess).\n")
     for c in conflicts:
         print(f"~ {' vs '.join(c['clash'])}   (sim {c['sim']}; subject: {', '.join(c['subject'][:3])})")
         print(f"    {c['a']['file']}:{c['a']['line']}")
         print(f"    {c['b']['file']}:{c['b']['line']}")
+        if c.get("canonical"):
+            print(f"    -> likely canonical: {c['canonical_file']}  ({c['canonical_reason']})")
     if prose_confirmed:
         print(f"\n# {len(prose_confirmed)} prose contradiction(s) -- LLM-confirmed\n")
         for c in prose_confirmed:
@@ -248,7 +268,7 @@ def cmd_radar(args) -> int:
             print(f"    {c['a']['file']}:{c['a']['line']}  {c['a']['text'][:80]}")
             print(f"    {c['b']['file']}:{c['b']['line']}  {c['b']['text'][:80]}")
             print(f"    why: {c.get('why', '')}")
-    return 0
+    return _radar_exit(args, conflicts, [])
 
 
 def cmd_resolve(args) -> int:
@@ -366,9 +386,17 @@ def cmd_activity(args) -> int:
 
 
 def cmd_graph(args) -> int:
-    from .graph import graph as build_graph
+    from .graph import graph as build_graph, to_mermaid, to_dot
     from .index import _DIR
-    g = build_graph(args.path, write=not args.no_write)
+    g = build_graph(args.path, write=not (args.no_write or args.mermaid or args.dot))
+
+    if args.mermaid:      # paste-into-README/PR export, nothing else
+        print(to_mermaid(g))
+        return 0
+    if args.dot:
+        print(to_dot(g))
+        return 0
+
     s = g["stats"]
     print(f"# library graph -- {s['files']} files, {s['links']} doc-links "
           f"({s['stale']} stale, {s['lagging']} lagging)")
@@ -387,7 +415,26 @@ def cmd_graph(args) -> int:
         print(f"\n## lagging -- last edited well before their graph neighbours ({len(lagging)}):")
         for n in lagging[: args.max]:
             print(f"  last {n['last'] or '?'}   {n['file']}")
-    return 0
+    return 2 if (getattr(args, "fail_on_lagging", False) and lagging) else 0
+
+
+def cmd_coverage(args) -> int:
+    from .graph import coverage
+    cov = coverage(args.path)
+    s = cov["stats"]
+    print(f"# doc coverage -- {s['files']} files, {s['undocumented']} undocumented code file(s), "
+          f"{s['lagging']} lagging doc(s)")
+    if cov["undocumented"]:
+        print("\n## undocumented code (no doc links in; high-churn first):")
+        for n in cov["undocumented"][: args.max]:
+            print(f"  {n['churn']:6d} churn   {n['file']}")
+    if cov["lagging"]:
+        print("\n## docs lagging the code they reference:")
+        for n in cov["lagging"][: args.max]:
+            print(f"  last {n['last'] or '?'}   {n['file']}")
+    fail = (getattr(args, "fail_on", "none") == "undocumented" and cov["undocumented"]) or \
+           (getattr(args, "fail_on", "none") == "lagging" and cov["lagging"])
+    return 2 if fail else 0
 
 
 def cmd_ui(args) -> int:
@@ -500,13 +547,25 @@ def main(argv=None) -> int:
     sp.add_argument("--verify", action="store_true", help="let an LLM confirm real contradictions + name the canonical value")
     sp.add_argument("--prose", action="store_true", help="also detect prose contradictions (LLM-judged; requires an API key)")
     sp.add_argument("--since", default=None, help="PR-diff: only contradictions touching files changed since this git ref")
+    sp.add_argument("--fail-on", choices=["none", "conflict", "verified"], default="none",
+                    help="CI exit code: 'conflict' fails on any candidate, 'verified' fails only on an LLM-confirmed one")
     sp.set_defaults(func=cmd_radar)
 
     sp = sub.add_parser("graph", help="library graph: files + doc-links + git freshness -> .concord/graph.json (a UI can read it)")
     sp.add_argument("path", nargs="?", default=".")
     sp.add_argument("--max", type=int, default=20)
     sp.add_argument("--no-write", action="store_true", help="print only; do not write .concord/graph.json")
+    sp.add_argument("--mermaid", action="store_true", help="emit a Mermaid 'graph LR' to paste into a README/PR (implies --no-write)")
+    sp.add_argument("--dot", action="store_true", help="emit Graphviz DOT (pipe to: dot -Tsvg)")
+    sp.add_argument("--fail-on-lagging", action="store_true", help="CI exit code: fail if any doc lags its graph neighbours")
     sp.set_defaults(func=cmd_graph)
+
+    sp = sub.add_parser("coverage", help="doc-coverage: code files with no inbound doc-link + docs lagging the code they reference")
+    sp.add_argument("path", nargs="?", default=".")
+    sp.add_argument("--max", type=int, default=20)
+    sp.add_argument("--fail-on", choices=["none", "undocumented", "lagging"], default="none",
+                    help="CI exit code: fail if any undocumented code / lagging doc is found")
+    sp.set_defaults(func=cmd_coverage)
 
     sp = sub.add_parser("activity", help="where dev effort goes + collision risk (files 2+ authors touch), from git")
     sp.add_argument("path", nargs="?", default=".")

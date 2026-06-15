@@ -100,6 +100,7 @@ a.fl:hover{text-decoration:underline}
     <button class="tab on" data-t="search">Search</button>
     <button class="tab" data-t="topics">Topics</button>
     <button class="tab" data-t="radar">Radar</button>
+    <button class="tab" data-t="graph">Graph</button>
     <button class="tab" data-t="activity">Activity</button>
   </div>
 </div></div>
@@ -145,6 +146,16 @@ a.fl:hover{text-decoration:underline}
     <p class="muted" style="margin:2px 2px 14px;font-size:13.5px">Where your docs state the <span style="color:var(--fg-2)">same thing two different ways</span> -- likely contradictions (same topic, same kind of value, different number). The engine flags them; you (or your LLM) confirm.</p>
     <div id="conflicts"><div class="empty"><span class="spin"></span> scanning for contradictions...</div></div>
   </section>
+  <section id="v-graph" class="hide">
+    <div class="kicker">Structure</div>
+    <h2 class="hsec">Document <span class="accent">link graph</span></h2>
+    <p class="muted" id="gnote" style="margin:2px 2px 12px;font-size:13.5px">How your docs reference each other and the code. Node colour = git freshness (green fresh, amber aging, red stale); a ringed node lags the files it links to. Size = passages. Click a node to open it.</p>
+    <div style="display:flex;gap:14px">
+      <canvas id="gcanvas" style="flex:1;min-width:0;height:520px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2);cursor:grab"></canvas>
+      <div class="inspect" id="ginspect" style="width:260px;flex:none"><div class="empty" style="padding:24px 0">Click a node to read its file.</div></div>
+    </div>
+    <div class="muted" id="gstats" style="margin-top:8px;font-size:12.5px"></div>
+  </section>
   <section id="v-activity" class="hide">
     <div class="kicker">Where the effort goes</div>
     <h2 class="hsec">Activity &amp; <span class="accent">collision</span> heatmap</h2>
@@ -163,9 +174,10 @@ const fl=(file,line)=>GHBASE?`<a class="fl" href="${GHBASE}/${file}#L${line}" ta
 
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
-  ['search','topics','radar','activity'].forEach(t=>$('#v-'+t).classList.toggle('hide',t!==b.dataset.t));
+  ['search','topics','radar','graph','activity'].forEach(t=>$('#v-'+t).classList.toggle('hide',t!==b.dataset.t));
   if(b.dataset.t==='topics'&&!window._tl){window._tl=1;loadTopics();}
   if(b.dataset.t==='radar'&&!window._rl){window._rl=1;loadRadar();}
+  if(b.dataset.t==='graph'&&!window._gl){window._gl=1;loadGraph();}
   if(b.dataset.t==='activity'&&!window._al){window._al=1;loadActivity();}
 });
 
@@ -301,6 +313,56 @@ function renderSettings(s){
   $('#provlist').querySelectorAll('input').forEach(i=>i.onchange=()=>setProvider(i.value));
 }
 async function setProvider(name){const s=await fetch('/api/llm/set?provider='+encodeURIComponent(name)).then(r=>r.json());applyLLM(s);renderSettings(s);}
+/* graph: self-contained canvas force layout (no deps) */
+async function loadGraph(){
+  const c=$('#gcanvas'), ctx=c.getContext('2d');
+  c.width=Math.round(c.getBoundingClientRect().width)||900; c.height=520;  // getBoundingClientRect forces layout
+  let data; try{ data=await (await fetch('/api/graph')).json(); }
+  catch(e){ $('#gstats').textContent='could not load graph'; return; }
+  const N=data.nodes||[], E=data.edges||[];
+  if(!N.length){ ctx.fillStyle='#888'; ctx.font='14px system-ui'; ctx.fillText('No graph yet -- run: concord graph .',24,40); return; }
+  $('#gstats').textContent=`${data.stats.files} files, ${data.stats.links} links, ${data.stats.lagging} lagging, ${data.stats.stale} stale`;
+  const COL={fresh:'#2ecc71',aging:'#e6b800',stale:'#e0533d',unknown:'#888'};
+  const idx={}; N.forEach((n,i)=>{idx[n.file]=i; n.x=c.width/2+(Math.random()-.5)*320; n.y=c.height/2+(Math.random()-.5)*320; n.vx=0; n.vy=0;});
+  const links=E.filter(e=>idx[e.source]!=null&&idx[e.target]!=null).map(e=>({s:idx[e.source],t:idx[e.target]}));
+  const deg={}; links.forEach(l=>{deg[l.s]=(deg[l.s]||0)+1;deg[l.t]=(deg[l.t]||0)+1;});
+  const rad=n=>4+Math.sqrt(n.passages||0)*1.1+(deg[idx[n.file]]||0)*0.4;
+  let scale=1, ox=0, oy=0, dragging=null, panning=false, lastx, lasty, hover=null;
+  function tick(a){
+    for(let i=0;i<N.length;i++){ for(let j=i+1;j<N.length;j++){
+      let dx=N[i].x-N[j].x, dy=N[i].y-N[j].y, d2=dx*dx+dy*dy+0.01, d=Math.sqrt(d2);
+      let f=Math.min(1300/d2,4), fx=dx/d*f, fy=dy/d*f; N[i].vx+=fx;N[i].vy+=fy;N[j].vx-=fx;N[j].vy-=fy; }}
+    links.forEach(l=>{ let a2=N[l.s],b2=N[l.t],dx=b2.x-a2.x,dy=b2.y-a2.y,d=Math.sqrt(dx*dx+dy*dy)+.01,f=(d-72)*0.02,fx=dx/d*f,fy=dy/d*f; a2.vx+=fx;a2.vy+=fy;b2.vx-=fx;b2.vy-=fy; });
+    N.forEach(n=>{ if(n===dragging) return; n.vx+=(c.width/2-n.x)*0.0006; n.vy+=(c.height/2-n.y)*0.0006; n.vx*=0.85;n.vy*=0.85; n.x+=n.vx*a*3; n.y+=n.vy*a*3; });
+  }
+  function settle(iters,a0){ let a=a0; for(let k=0;k<iters;k++){ a*=0.97; if(a<0.02)a=0.02; tick(a); } draw(); }  // sync layout: rAF is throttled in background tabs
+  function draw(){
+    ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,c.width,c.height); ctx.setTransform(scale,0,0,scale,ox,oy);
+    ctx.lineWidth=1/scale; ctx.strokeStyle='rgba(150,150,170,0.35)';
+    links.forEach(l=>{ ctx.beginPath(); ctx.moveTo(N[l.s].x,N[l.s].y); ctx.lineTo(N[l.t].x,N[l.t].y); ctx.stroke(); });
+    N.forEach(n=>{ let r=rad(n); ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7); ctx.fillStyle=COL[n.freshness]||COL.unknown; ctx.fill();
+      if(n.lagging){ ctx.lineWidth=2.5/scale; ctx.strokeStyle='#fff'; ctx.beginPath(); ctx.arc(n.x,n.y,r+2.5,0,7); ctx.stroke(); }
+      if(n===hover){ ctx.lineWidth=1.5/scale; ctx.strokeStyle='#fff'; ctx.beginPath(); ctx.arc(n.x,n.y,r+1,0,7); ctx.stroke(); } });
+    if(hover){ ctx.setTransform(1,0,0,1,0,0); let sx=hover.x*scale+ox, sy=hover.y*scale+oy, t=hover.file+'  ['+hover.freshness+(hover.last?' '+hover.last:'')+']';
+      ctx.font='12px system-ui'; let w=ctx.measureText(t).width+10; ctx.fillStyle='rgba(20,20,28,0.92)'; ctx.fillRect(sx+8,sy-10,w,18); ctx.fillStyle='#fff'; ctx.fillText(t,sx+13,sy+3); }
+  }
+  function at(mx,my){ let wx=(mx-ox)/scale, wy=(my-oy)/scale, best=null, bd=1e9;
+    N.forEach(n=>{let d=Math.hypot(n.x-wx,n.y-wy); if(d<rad(n)+3&&d<bd){bd=d;best=n;}}); return best; }
+  c.onmousedown=e=>{const r=c.getBoundingClientRect(),n=at(e.clientX-r.left,e.clientY-r.top); if(n){dragging=n;}else{panning=true;lastx=e.clientX;lasty=e.clientY;} c.style.cursor='grabbing';};
+  c.onmousemove=e=>{const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+    if(dragging){ dragging.x=(mx-ox)/scale; dragging.y=(my-oy)/scale; dragging.vx=dragging.vy=0; settle(5,0.25); return; }
+    if(panning){ ox+=e.clientX-lastx; oy+=e.clientY-lasty; lastx=e.clientX; lasty=e.clientY; draw(); return; }
+    const h=at(mx,my); if(h!==hover){ hover=h; c.style.cursor=h?'pointer':'grab'; draw(); } };
+  window.addEventListener('mouseup',()=>{ dragging=null; panning=false; c.style.cursor='grab'; });
+  c.onclick=e=>{const r=c.getBoundingClientRect(),n=at(e.clientX-r.left,e.clientY-r.top); if(n) openFile(n);};
+  c.onwheel=e=>{e.preventDefault(); const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,f=e.deltaY<0?1.1:0.9; ox=mx-(mx-ox)*f; oy=my-(my-oy)*f; scale*=f; draw();};
+  window.openFile=n=>{ const gh=GHBASE?`<a class="fl" href="${GHBASE}/${n.file}" target="_blank" rel="noopener">view on GitHub</a>`:'';
+    $('#ginspect').innerHTML=`<h4>${esc(n.file.split('/').pop())}</h4><div class="sub" style="word-break:break-all">${esc(n.file)}</div>`+
+      `<div style="margin-top:8px;font-size:13px;line-height:1.7">freshness: <b style="color:${COL[n.freshness]||COL.unknown}">${n.freshness}</b>${n.lagging?' &middot; <b style="color:#e0533d">lagging</b>':''}`+
+      `<br>last edit: ${n.last||'?'}<br>passages: ${n.passages} &middot; churn: ${n.churn} &middot; authors: ${n.authors}</div><div style="margin-top:10px">${gh}</div>`; };
+  settle(240,1);
+}
+
 $('#gear').onclick=e=>{e.stopPropagation();$('#settings').classList.toggle('hide');};
 document.addEventListener('click',e=>{if(!$('#settings').classList.contains('hide')&&!$('#settings').contains(e.target)&&e.target!==$('#gear'))$('#settings').classList.add('hide');});
 fetch('/api/llm').then(r=>r.json()).then(s=>{applyLLM(s);renderSettings(s);}).catch(()=>{});

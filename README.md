@@ -26,7 +26,9 @@ strings, comments and named constants in your code and config) and lets you:
   of value (a price, a threshold, a gating constant), different number, across prose
   and source (`$49` vs `$39`, `MIN_N = 8` vs `"min_n": 5`). With `--prose` it also
   surfaces **non-numeric** contradictions (`SOC 2 certified` vs `SOC 2 in progress`),
-  LLM-judged over the same retrieval, opt-in.
+  LLM-judged over the same retrieval, opt-in. Each conflict gets a deterministic
+  **canonical suggestion** -- the side whose file is fresher (or not lagging) in git is
+  the likely source of truth, no model needed.
 - **Lint:** *"does any internal codename or retired term reach a file that ships
   publicly?"* Deterministic exact-match over a known term list, scanning raw text.
   Runs in CI or a pre-commit hook.
@@ -35,8 +37,13 @@ strings, comments and named constants in your code and config) and lets you:
   relevant passages into context instead of whole files.
 - **Graph:** *"how do the docs link together, and which have fallen behind?"* A
   library graph of intra-repo references (markdown links, `see X.md`, HTML hrefs) joined
-  with per-file git freshness, written to `.concord/graph.json` for a UI to consume.
-  Flags docs last edited well before the neighbours they link to (`lagging`).
+  with per-file git freshness, written to `.concord/graph.json` and rendered live in the
+  **Graph tab** of `concord ui` (nodes coloured by freshness, lagging nodes ringed).
+  Flags docs last edited well before the neighbours they link to (`lagging`); export with
+  `concord graph --mermaid` (or `--dot`) to paste a freshness-coloured map into a README/PR.
+- **Coverage:** *"what's undocumented, and which docs trail the code?"* `concord coverage`
+  reads the same graph: code files with **no inbound doc-link** (highest-churn first) and
+  docs that lag the code they reference.
 
 The core is **deterministic**: the lint is regex, the ranking is geometry, and
 extraction and the contradiction radar run without a model. A language model enters
@@ -117,6 +124,26 @@ jobs:
 concord badge .    # -> ![Concord](https://img.shields.io/badge/concord-0%20leaks-brightgreen)
 ```
 
+The radar and graph carry the same CI story via exit codes (nonzero fails the build):
+
+```bash
+concord radar . --fail-on conflict     # fail on any value contradiction (or --fail-on verified, LLM-confirmed only)
+concord graph . --fail-on-lagging      # fail if a doc lags the code it links to
+concord coverage . --fail-on undocumented   # fail on undocumented code surface
+```
+
+Or wire them as **pre-commit hooks** (this repo ships `.pre-commit-hooks.yaml`):
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/linnetlabs/concord
+    rev: v0.0.1
+    hooks:
+      - id: concord-lint            # block a codename leak
+      - id: concord-radar           # block a value contradiction
+```
+
 ## Find drift across history
 
 ```bash
@@ -160,11 +187,13 @@ concord read   "what have we said about pricing?"   # retrieve the relevant pass
 concord radar  . --verify                  # find contradictions; --verify lets an LLM confirm + name the canonical value
 concord radar  . --prose                   # also catch non-numeric contradictions (SOC2 certified vs in progress); LLM-judged
 concord graph  .                           # library graph (doc-links + git freshness) -> .concord/graph.json
+concord graph  . --mermaid                 # export a freshness-coloured Mermaid graph to paste into a README/PR
+concord coverage .                         # undocumented code (no inbound doc-link) + docs lagging their code
 concord resolve .                          # walk confirmed contradictions and apply the fix (interactive; --apply = auto)
 concord report . --out report.html         # shareable consistency report (lint + radar)
 concord drift  "$49"                       # which commits changed a value (git pickaxe)
 concord topics .                           # annotated topic map (browse; --samples to name them)
-concord ui     .                           # premium live explorer in your browser (search, topics, radar)
+concord ui     .                           # premium live explorer: search, topics, radar, + the doc-link Graph tab
 ```
 
 ## AI is optional, and it's *your* key

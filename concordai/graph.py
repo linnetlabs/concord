@@ -111,15 +111,106 @@ def graph(root, write: bool = True) -> dict:
     return g
 
 
-def consistency(root, verify: bool = False, max_conflicts: int = 200) -> dict:
+def freshness_map(g: dict) -> dict:
+    """{file: {freshness, lagging, last}} from a graph dict -- the input radar.annotate_canonical wants."""
+    return {n["file"]: {"freshness": n["freshness"], "lagging": n["lagging"], "last": n["last"]}
+            for n in g["nodes"]}
+
+
+_PROSE_EXTS = (".md", ".mdx", ".markdown", ".rst", ".txt")
+
+
+def coverage(root, g: Optional[dict] = None) -> dict:
+    """Doc-coverage signal off the library graph: code files with NO inbound doc-link
+    (undocumented surface, riskiest where churn is high) and docs that lag the code
+    they reference. Deterministic; reads the graph, no model."""
+    g = g or graph(root, write=False)
+    indeg = Counter()
+    for e in g["edges"]:
+        indeg[e["target"]] += 1
+    undocumented, lagging = [], []
+    for n in g["nodes"]:
+        f = n["file"]
+        ext = ("." + f.rsplit(".", 1)[-1]).lower() if "." in f else ""
+        is_doc = ext in _PROSE_EXTS
+        if not is_doc and n["passages"] and indeg.get(f, 0) == 0:
+            undocumented.append(n)
+        if n["lagging"]:
+            lagging.append(n)
+    undocumented.sort(key=lambda n: -n["churn"])    # high-churn + undocumented = riskiest
+    lagging.sort(key=lambda n: n["last"])
+    return {"undocumented": undocumented, "lagging": lagging,
+            "stats": {"files": g["stats"]["files"],
+                      "undocumented": len(undocumented), "lagging": len(lagging)}}
+
+
+def _short(f: str) -> str:
+    return "/".join(f.split("/")[-2:])  # last 2 path segments: disambiguates same-named files
+
+
+_MERMAID_FILL = {"fresh": "fill:#1f7a3d,color:#fff", "aging": "fill:#b8860b,color:#fff",
+                 "stale": "fill:#a32222,color:#fff", "unknown": "fill:#555,color:#fff"}
+
+
+def to_mermaid(g: dict, max_edges: int = 200) -> str:
+    """The doc-link graph as a Mermaid 'graph LR' to paste into a README or PR.
+    Nodes are coloured by freshness; lagging nodes get a thick white border."""
+    by_file = {n["file"]: n for n in g["nodes"]}
+    nid, lines, seen = {}, ["graph LR"], set()
+
+    def _id(f: str) -> str:
+        if f not in nid:
+            nid[f] = "n%d" % len(nid)
+        return nid[f]
+
+    for e in g["edges"][:max_edges]:
+        lines.append(f'  {_id(e["source"])}["{_short(e["source"])}"] --> '
+                     f'{_id(e["target"])}["{_short(e["target"])}"]')
+        seen.add(e["source"]); seen.add(e["target"])
+    for f in sorted(seen):
+        n = by_file.get(f, {})
+        fill = _MERMAID_FILL.get(n.get("freshness", "unknown"), _MERMAID_FILL["unknown"])
+        ring = ",stroke:#fff,stroke-width:4px" if n.get("lagging") else ""
+        lines.append(f"  style {_id(f)} {fill}{ring}")
+    return "\n".join(lines)
+
+
+_DOT_COLOR = {"fresh": "#1f7a3d", "aging": "#b8860b", "stale": "#a32222", "unknown": "#555555"}
+
+
+def to_dot(g: dict, max_edges: int = 400) -> str:
+    """The doc-link graph as Graphviz DOT (dot -Tsvg)."""
+    by_file = {n["file"]: n for n in g["nodes"]}
+    lines = ["digraph concord {", '  rankdir=LR; node [shape=box,style=filled,fontname="monospace",fontcolor="white"];']
+    seen = set()
+    for e in g["edges"][:max_edges]:
+        lines.append(f'  "{e["source"]}" -> "{e["target"]}";')
+        seen.add(e["source"]); seen.add(e["target"])
+    for f in sorted(seen):
+        n = by_file.get(f, {})
+        c = _DOT_COLOR.get(n.get("freshness", "unknown"), "#555555")
+        pen = ",penwidth=3,color=white" if n.get("lagging") else ""
+        lines.append(f'  "{f}" [fillcolor="{c}"{pen}];')
+    lines.append("}")
+    return "\n".join(lines)
+
+
+def consistency(root, verify: bool = False, max_conflicts: int = 200, canonical: bool = True) -> dict:
     """Contradictions across the corpus: deterministic typed-value clashes always; non-numeric
-    prose contradictions (LLM-judged, opt-in, cheap on DeepSeek) when verify=True."""
+    prose contradictions (LLM-judged, opt-in, cheap on DeepSeek) when verify=True. When
+    canonical=True, each numeric conflict is tagged with a deterministic freshness-based
+    suggestion of which side is the source of truth (see radar.pick_canonical)."""
     from . import radar as _radar
     from .index import Index
     idx = Index.load(root)
     out = {"conflicts": [], "verified": bool(verify)}
-    conflicts = _radar.find_conflicts(idx.passages, idx.matrix, max_conflicts=max_conflicts)
-    out["conflicts"] = list(conflicts)
+    conflicts = list(_radar.find_conflicts(idx.passages, idx.matrix, max_conflicts=max_conflicts)["conflicts"])
+    if canonical and conflicts:
+        try:
+            _radar.annotate_canonical(conflicts, freshness_map(graph(root, write=False)))
+        except Exception as e:
+            out["canonical_error"] = str(e)
+    out["conflicts"] = conflicts
     if verify and hasattr(_radar, "find_prose_conflicts"):
         try:
             out["conflicts"].extend(_radar.find_prose_conflicts(idx.passages, idx.matrix))

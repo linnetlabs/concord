@@ -5,7 +5,8 @@
 rules.yaml
 rules.local.yaml
 *.local.yaml
-.concord/            # built indexes, embeddings cache
+# built indexes, embeddings cache
+.concord/
 .concord.db
 
 # Python

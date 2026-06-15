@@ -177,3 +177,54 @@ def find_prose_conflicts(passages, matrix, sim_threshold: float = 0.88, neighbor
             })
     candidates.sort(key=lambda c: -c["sim"])
     return candidates[:max_candidates]
+
+
+# --- canonical suggestion: which side of a conflict is the drifted copy ---------
+# Deterministic, no LLM. When two passages disagree, the one in the doc that fell
+# BEHIND (lagging its graph neighbours, or simply staler/older in git) is the copy
+# that drifted; the current side is the likely source of truth. This joins the
+# radar's conflict pairs with the library graph's freshness (see graph.freshness_map).
+
+_FRESH_RANK = {"fresh": 3, "aging": 2, "stale": 1, "unknown": 0, "": 0}
+
+
+def pick_canonical(conflict: dict, freshness: dict):
+    """Suggest which side of a conflict is canonical from git freshness alone.
+
+    `freshness` maps file -> {"freshness": str, "lagging": bool, "last": "YYYY-MM-DD"}.
+    Returns (side, reason) with side in {"a", "b", None}. None means freshness can't
+    decide (same age) -- defer to a human or `--verify`.
+    """
+    fa = freshness.get(conflict["a"]["file"], {})
+    fb = freshness.get(conflict["b"]["file"], {})
+    af, bf = conflict["a"]["file"], conflict["b"]["file"]
+    # 1) lagging is the strongest signal: a doc that fell behind its neighbours
+    if bool(fa.get("lagging")) != bool(fb.get("lagging")):
+        win = "b" if fa.get("lagging") else "a"
+        lag = af if win == "b" else bf
+        return win, f"{lag} lags its graph neighbours; the other side is current"
+    # 2) freshness tier (fresh > aging > stale)
+    ra, rb = _FRESH_RANK.get(fa.get("freshness", ""), 0), _FRESH_RANK.get(fb.get("freshness", ""), 0)
+    if ra != rb:
+        win = "a" if ra > rb else "b"
+        stale = bf if win == "a" else af
+        return win, f"{stale} is the {fb.get('freshness') if win == 'a' else fa.get('freshness')} side; the fresher value wins"
+    # 3) raw commit date as the tie-breaker
+    la, lb = fa.get("last", ""), fb.get("last", "")
+    if la and lb and la != lb:
+        return ("a", f"{af} edited more recently ({la} > {lb})") if la > lb \
+            else ("b", f"{bf} edited more recently ({lb} > {la})")
+    return None, "freshness inconclusive (same age) -- needs a human or --verify"
+
+
+def annotate_canonical(conflicts, freshness):
+    """Tag each conflict in place with a deterministic canonical suggestion."""
+    for c in conflicts:
+        side, why = pick_canonical(c, freshness)
+        c["canonical"] = side
+        c["canonical_reason"] = why
+        if side:
+            c["canonical_file"] = c[side]["file"]
+            vals = c[side].get("values") or []
+            c["canonical_value"] = vals[0] if vals else None
+    return conflicts
