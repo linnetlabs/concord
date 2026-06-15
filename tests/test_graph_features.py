@@ -85,6 +85,16 @@ def test_to_dot_is_valid_ish():
     assert "penwidth=3" in d                         # lagging node
 
 
+# --- file history sparkline (server) ---------------------------------------------
+def test_file_hist_shape():
+    from concordai import server
+    h = server.file_hist(".", "README.md", months=12)
+    assert len(h) == 12
+    assert all(set(x) == {"month", "commits"} for x in h)
+    assert all(len(x["month"]) == 7 and x["month"][4] == "-" for x in h)  # YYYY-MM
+    assert server.file_hist(".", "") == []                                 # no file -> empty
+
+
 # --- CI exit codes ---------------------------------------------------------------
 def test_radar_exit_codes():
     mk = lambda mode: type("A", (), {"fail_on": mode})()

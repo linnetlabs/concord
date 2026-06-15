@@ -1,0 +1,12 @@
+# Demo ruleset for examples/demo (a real one lives in a gitignored rules.yaml).
+visibility:
+  public:
+    - "**/*.md"
+  data:
+    - "**/*.json"          # config payloads: data, not prose -- skipped by the leak lint
+terms:
+  - id: codename-nimbus
+    match: regex
+    pattern: "Project[ -]?Nimbus"
+    reason: "Internal codename -- ship the public name 'Skyline' instead."
+    severity: error

@@ -359,7 +359,15 @@ async function loadGraph(){
   window.openFile=n=>{ const gh=GHBASE?`<a class="fl" href="${GHBASE}/${n.file}" target="_blank" rel="noopener">view on GitHub</a>`:'';
     $('#ginspect').innerHTML=`<h4>${esc(n.file.split('/').pop())}</h4><div class="sub" style="word-break:break-all">${esc(n.file)}</div>`+
       `<div style="margin-top:8px;font-size:13px;line-height:1.7">freshness: <b style="color:${COL[n.freshness]||COL.unknown}">${n.freshness}</b>${n.lagging?' &middot; <b style="color:#e0533d">lagging</b>':''}`+
-      `<br>last edit: ${n.last||'?'}<br>passages: ${n.passages} &middot; churn: ${n.churn} &middot; authors: ${n.authors}</div><div style="margin-top:10px">${gh}</div>`; };
+      `<br>last edit: ${n.last||'?'}<br>passages: ${n.passages} &middot; churn: ${n.churn} &middot; authors: ${n.authors}</div>`+
+      `<div id="spark" style="margin-top:12px"></div><div style="margin-top:10px">${gh}</div>`;
+    fetch('/api/filehist?file='+encodeURIComponent(n.file)).then(r=>r.json()).then(h=>{
+      const m=h.months||[]; if(!m.length) return;
+      const W=236,H=40,bw=W/m.length,max=Math.max(1,...m.map(x=>x.commits)),tot=m.reduce((s,x)=>s+x.commits,0);
+      const bars=m.map((x,i)=>{const bh=x.commits?Math.max(2,x.commits/max*(H-6)):1;
+        return `<rect x="${(i*bw).toFixed(1)}" y="${(H-bh).toFixed(1)}" width="${Math.max(1,bw-2).toFixed(1)}" height="${bh.toFixed(1)}" fill="${x.commits?'#2ecc71':'#2a2f3a'}"><title>${x.month}: ${x.commits}</title></rect>`;}).join('');
+      const sp=$('#spark'); if(sp) sp.innerHTML=`<div class="muted" style="font-size:12px;margin-bottom:4px">commit activity -- last ${m.length} mo (${tot} commits)</div><svg width="${W}" height="${H}">${bars}</svg>`;
+    }).catch(()=>{}); };
   settle(240,1);
 }
 

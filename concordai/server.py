@@ -71,6 +71,29 @@ def drift(root: str, term: str, n: int = 25) -> list:
     return rows
 
 
+def file_hist(root: str, file: str, months: int = 12) -> list:
+    """Commits touching `file` bucketed into the last `months` calendar months -- a tiny
+    activity sparkline for the graph inspector (how recently/often a file has changed)."""
+    if not file:
+        return []
+    try:
+        out = subprocess.run(
+            ["git", "-C", root, "log", "--format=%ad", "--date=format:%Y-%m", "--", file],
+            capture_output=True, text=True).stdout
+    except OSError:
+        return []
+    counts = Counter(l.strip() for l in out.splitlines() if l.strip())
+    import datetime as _dt
+    y, m, keys = _dt.date.today().year, _dt.date.today().month, []
+    for _ in range(months):
+        keys.append(f"{y:04d}-{m:02d}")
+        m -= 1
+        if m == 0:
+            m, y = 12, y - 1
+    keys.reverse()
+    return [{"month": k, "commits": counts.get(k, 0)} for k in keys]
+
+
 def _load(root: str) -> None:
     from .embed import get_embedder
     from .index import Index
@@ -268,6 +291,10 @@ class _Handler(BaseHTTPRequestHandler):
             if _STATE.get("graph") is None:
                 _STATE["graph"] = G.graph(_STATE["root"], write=True)
             return self._json(G.coverage(_STATE["root"], _STATE["graph"]))
+
+        if u.path == "/api/filehist":
+            return self._json({"file": q.get("file", [""])[0],
+                               "months": file_hist(_STATE["root"], q.get("file", [""])[0])})
 
         self.send_response(404)
         self.end_headers()
