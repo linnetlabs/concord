@@ -83,12 +83,14 @@ complementary: the graph for structure, Concord for the exact conflicting lines.
 These counts are the read *budget* (what goes into context), not a measure of answer
 quality; retrieval accuracy is benchmarked separately in [`eval/`](eval/).
 
-> **Honest caveat (completeness queries).** These numbers are for *targeted* questions.
-> For "find **all** X" sweeps (e.g. "every GDPR commitment"), a small top-k with an
-> aggressive cutoff *under-retrieves*: it can return four near-identical clauses and
-> miss the scattered rest. That's a recall-vs-tokens trade, and it's exactly where a
-> topic/cluster index helps (see Roadmap). Concord prints what it retrieved so the gap
-> is visible, never hidden.
+> **Completeness queries.** The numbers above are for *targeted* questions. For "find
+> **all** X" sweeps (e.g. "every GDPR commitment"), a small top-k with an aggressive
+> cutoff *under-retrieves*: it returns four near-identical clauses and misses the
+> scattered rest. `concord read --all` handles this -- it clusters a generous candidate
+> pool into facets and keeps walking the ranking while each hit is on-topic **or** adds a
+> **new facet**, stopping only when neither holds. Recall-complete at the cost of more
+> tokens (the recall-vs-tokens trade, made explicit). Concord prints what it retrieved
+> either way, so the gap is never hidden.
 
 ## Updating: only what changed
 
@@ -170,9 +172,11 @@ pluggable:
 | Driver | Surface | Relevance judge |
 |--------|---------|-----------------|
 | Human  | `concordai` (Python CLI), live explorer (`concord ui`) | geometry, or your eyes |
-| Agent  | Claude skill / MCP server | the model |
+| Agent  | Claude skill, or MCP server (`concord serve --mcp`) | the model |
 
 Same engine underneath. A human sits in the seat an agent would otherwise occupy.
+`concord serve --mcp` speaks MCP (Model Context Protocol) on stdin/stdout, exposing
+`find` / `read` / `radar` / `graph` / `coverage` / `lint` as tools any MCP client can call.
 
 ## Install
 
@@ -195,6 +199,7 @@ concord lint   .                           # fail CI if a banned term reaches a 
 concord index  .                           # build the semantic index (self-ignored)
 concord find   "annual subscription pricing"  # exact + semantic hits, cited to file:line
 concord read   "what have we said about pricing?"   # retrieve the relevant passages
+concord read   "every GDPR commitment" --all   # recall-complete sweep (walk while new facets appear)
 concord radar  . --verify                  # find contradictions; --verify lets an LLM confirm + name the canonical value
 concord radar  . --prose                   # also catch non-numeric contradictions (SOC2 certified vs in progress); LLM-judged
 concord graph  .                           # library graph (doc-links + git freshness) -> .concord/graph.json
@@ -205,6 +210,7 @@ concord report . --out report.html         # shareable consistency report (lint 
 concord drift  "$49"                       # which commits changed a value (git pickaxe)
 concord topics .                           # annotated topic map (browse; --samples to name them)
 concord ui     .                           # premium live explorer: search, topics, radar, + the doc-link Graph tab
+concord serve  . --mcp                     # run as an MCP server so agents can call find/read/radar/graph/coverage/lint
 ```
 
 ## AI is optional, and it's *your* key

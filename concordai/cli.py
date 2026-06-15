@@ -468,10 +468,28 @@ def cmd_ui(args) -> int:
     return 0
 
 
+def cmd_serve(args) -> int:
+    if not args.mcp:
+        print("concord serve currently supports only --mcp (stdio MCP server for agents)", file=sys.stderr)
+        return 2
+    from . import mcp_server
+    return mcp_server.serve(args.path)
+
+
 def cmd_read(args) -> int:
     root = Path(args.path)
     rules = load_ruleset(_default_rules(root))
     queries = [args.query] + list(args.also or [])
+    if getattr(args, "all", False):  # recall-complete sweep for "find ALL X"
+        from .find import find_all
+        hits = find_all(queries, root, rules)
+        nfac = len({h.facet for h in hits if h.facet})
+        print(f"# recall-complete sweep: {len(hits)} passage(s) across {nfac} facet(s) "
+              f"-- kept while on-topic OR adding a new facet (more tokens, fewer misses).\n")
+        for h in hits:
+            tag = f"  [facet: {h.facet}]" if h.facet else ""
+            print(f"## [{h.score:.3f}] {h.file}:{h.line} (semantic){tag}\n{h.text}\n")
+        return 0
     hits = find(queries, root, rules, channels=("semantic", "exact"), top=args.max)
 
     facet = None
@@ -551,6 +569,11 @@ def main(argv=None) -> int:
     sp.add_argument("--port", type=int, default=8765)
     sp.set_defaults(func=cmd_ui)
 
+    sp = sub.add_parser("serve", help="run concord as an MCP server for agents (find/read/radar/graph/coverage/lint)")
+    sp.add_argument("path", nargs="?", default=".")
+    sp.add_argument("--mcp", action="store_true", help="speak MCP (Model Context Protocol) JSON-RPC on stdin/stdout")
+    sp.set_defaults(func=cmd_serve)
+
     sp = sub.add_parser("radar", help="contradiction radar: same-topic passages stating different values")
     sp.add_argument("path", nargs="?", default=".")
     sp.add_argument("--max", type=int, default=40)
@@ -612,6 +635,7 @@ def main(argv=None) -> int:
     sp.add_argument("--also", action="append", help="extra phrasing(s) of the question (multi-query; repeatable)")
     sp.add_argument("--max", type=int, default=40, help="max passages in the ranked window (a ceiling, not a target)")
     sp.add_argument("--facets", action="store_true", help="tag each passage with its result-facet for a facet-aware (dynamic-patience) walk")
+    sp.add_argument("--all", action="store_true", help="recall-complete sweep: keep walking while new facets appear (for 'find ALL X'; ignores --max)")
     sp.set_defaults(func=cmd_read)
 
     args = p.parse_args(argv)
